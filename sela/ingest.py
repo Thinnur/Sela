@@ -1,16 +1,27 @@
+import asyncio
 import json
+import logging
+import re
+import shutil
 import sqlite3
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from sela import db
 from sela.adapters import ADAPTER, adapter_untuk
 from sela.adapters.base import ChapterRef, Judul
-from sela.cbz import periksa_gambar
+from sela.cbz import GambarRusak, HasilCbz, buat_cbz, hasil_dari, periksa_gambar
+from sela.drive import BerkasDrive, Drive, DriveError
 from sela.fetch import PengambilAman, SumberError
+from sela.setelan import Setelan
 from sela.urutan import kunci_urut_semua, normalisasi_label
 
 INTERVAL_BAWAAN = 21600
+MAKS_GAMBAR = 600
+log = logging.getLogger("sela.ingest")
 
 
 @dataclass(frozen=True)
@@ -119,6 +130,131 @@ def tambahkan(conn: sqlite3.Connection, pv: Pratinjau, user_id: int, tautkan_cad
             sisipkan_chapter_cadangan(conn, sid, cad, chapters_c)
         catat(conn, jam, "judul_ditambah", f"{nama_pengguna(conn, user_id)} menambahkan {j.judul}", sid, user_id=user_id)
         return sid
+
+
+def _status(conn: sqlite3.Connection, chapter_id: int, status: str, pesan: str | None = None) -> None:
+    conn.execute("update chapters set status=?, pesan_status=? where id=?", (status, pesan, chapter_id))
+
+
+def _checkpoint(conn: sqlite3.Connection, job_id: int, **isi) -> None:
+    cp = json.loads(conn.execute("select checkpoint from jobs where id=?", (job_id,)).fetchone()[0])
+    cp.update(isi)
+    conn.execute("update jobs set checkpoint=? where id=?", (json.dumps(cp), job_id))
+
+
+def _nama_aman(label_normal: str) -> str:
+    return re.sub(r"[^0-9a-z.]+", "-", label_normal.lower()).strip("-") or "x"
+
+
+async def _folder_judul(conn: sqlite3.Connection, drive: Drive, s: Setelan, series: sqlite3.Row) -> str:
+    sid = series["id"]
+    folder = db.kv_ambil(conn, f"folder:{sid}")
+    if folder:
+        return folder
+    akar = db.kv_ambil(conn, "folder:akar")
+    if not akar:
+        akar = await drive.pastikan_folder("Sela", None)
+        db.kv_set(conn, "folder:akar", akar)
+    folder = await drive.pastikan_folder(f"{series['judul']} [{sid}]", akar)
+    db.kv_set(conn, f"folder:{sid}", folder)
+    if series["sampul"] and not db.kv_ambil(conn, f"sampul:{sid}"):
+        sampul = s.dir_data / "sampul" / series["sampul"]
+        if sampul.exists():
+            await drive.unggah(sampul, f"sampul{sampul.suffix}", folder, {"sela_sampul": str(sid)})
+            db.kv_set(conn, f"sampul:{sid}", "1")
+    return folder
+
+
+async def _unduh_gambar(conn, p: PengambilAman, adapter, url_chapter: str, kerja: Path, job_id: int):
+    urls = await adapter.ambil_gambar(p, url_chapter)
+    if len(urls) > MAKS_GAMBAR:
+        raise SumberError("berubah", f"jumlah gambar tidak wajar ({len(urls)})")
+    raw = kerja / "raw"
+    raw.mkdir(parents=True, exist_ok=True)
+    selesai = 0
+    _checkpoint(conn, job_id, tahap="unduh", gambar_selesai=0, gambar_total=len(urls))
+
+    async def satu(n: int, url: str):
+        nonlocal selesai
+        data = (await p.ambil(url, referer=url_chapter)).content
+        try:
+            info = await asyncio.to_thread(periksa_gambar, data)
+        except GambarRusak as e:
+            raise GambarRusak(f"gambar ke-{n} rusak") from e
+        path = raw / f"{n:04d}"
+        path.write_bytes(data)
+        selesai += 1
+        if selesai % 10 == 0 or selesai == len(urls):
+            _checkpoint(conn, job_id, gambar_selesai=selesai)
+        return path, info, urlsplit(url).hostname or ""
+
+    tugas = [asyncio.ensure_future(satu(n, u)) for n, u in enumerate(urls, 1)]
+    try:
+        return await asyncio.gather(*tugas)
+    except BaseException:
+        for t in tugas:
+            t.cancel()  # satu gambar gagal: chapter pasti tidak lengkap, hentikan unduhan sisanya
+        await asyncio.gather(*tugas, return_exceptions=True)
+        raise
+
+
+def _simpan_arsip(conn: sqlite3.Connection, chapter: sqlite3.Row, job_id: int, sumber_id: int, berkas: BerkasDrive,
+                  hasil: HasilCbz, jam: float) -> None:
+    with db.transaksi(conn):
+        conn.execute("insert or replace into archives values(?,?,?,?,?,?,?,?,?)",
+                     (chapter["id"], berkas.id, sumber_id, hasil.ukuran, hasil.md5, hasil.sha256, hasil.jumlah,
+                      json.dumps(hasil.manifest, ensure_ascii=False), jam))
+        conn.execute("update chapters set status='siap', pesan_status=null, siap_pada=? where id=?", (jam, chapter["id"]))
+        conn.execute("update jobs set status='selesai', jenis_error=null, pesan_error=null, diperbarui=? where id=?", (jam, job_id))
+        catat(conn, jam, "chapter_siap", f"{chapter['label']} siap dibaca", chapter["series_id"], chapter["id"])
+
+
+async def proses_chapter(buka_db: Callable[[], sqlite3.Connection], p: PengambilAman, drive: Drive, s: Setelan,
+                         job_id: int) -> None:
+    conn = buka_db()
+    try:
+        job = conn.execute("select * from jobs where id=?", (job_id,)).fetchone()
+        chapter = conn.execute("select * from chapters where id=?", (job["target"],)).fetchone()
+        sumber = conn.execute("select * from series_sources where id=?", (job["sumber_id"],)).fetchone()
+        series = conn.execute("select * from series where id=?", (chapter["series_id"],)).fetchone()
+        url_chapter = conn.execute("select url from chapter_sources where chapter_id=? and sumber_id=?",
+                                   (chapter["id"], sumber["id"])).fetchone()["url"]
+        kerja = s.dir_tmp / str(job_id)
+        cbz = kerja / "ch.cbz"
+
+        if not cbz.exists():
+            _status(conn, chapter["id"], "mengunduh")
+            try:
+                berkas = await _unduh_gambar(conn, p, ADAPTER[sumber["adapter"]], url_chapter, kerja, job_id)
+                sementara = kerja / "ch.cbz.part"
+                await asyncio.to_thread(buat_cbz, sementara, berkas,
+                                        {"adapter": sumber["adapter"], "url_chapter": url_chapter, "label": chapter["label"]})
+                sementara.rename(cbz)  # ch.cbz hanya ada kalau arsipnya lengkap
+            except BaseException:
+                shutil.rmtree(kerja, ignore_errors=True)
+                raise
+            shutil.rmtree(kerja / "raw", ignore_errors=True)
+        hasil = await asyncio.to_thread(hasil_dari, cbz)
+
+        _status(conn, chapter["id"], "mengunggah")
+        _checkpoint(conn, job_id, tahap="unggah")
+        folder = await _folder_judul(conn, drive, s, series)
+        ada = await drive.cari({"sela_chapter": str(chapter["id"])})
+        cocok = [b for b in ada if b.md5 == hasil.md5]
+        if ada and not cocok:
+            log.warning("chapter %s punya arsip lama di Drive dengan isi berbeda; arsip lama dibiarkan", chapter["id"])
+        berkas_drive = cocok[0] if cocok else await drive.unggah(
+            cbz, f"ch-{_nama_aman(chapter['label_normal'])}.cbz", folder,
+            {"sela_chapter": str(chapter["id"]), "sela_job": str(job_id)})
+
+        _status(conn, chapter["id"], "memverifikasi")
+        _checkpoint(conn, job_id, tahap="verifikasi")
+        if berkas_drive.ukuran != hasil.ukuran or berkas_drive.md5 != hasil.md5:
+            raise DriveError("sementara", "isi di Drive tidak cocok dengan arsip lokal")
+        _simpan_arsip(conn, chapter, job_id, sumber["id"], berkas_drive, hasil, time.time())
+        shutil.rmtree(kerja, ignore_errors=True)
+    finally:
+        conn.close()
 
 
 async def simpan_sampul(p: PengambilAman, url: str, tujuan_tanpa_ext: Path) -> str | None:

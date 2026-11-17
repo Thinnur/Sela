@@ -68,12 +68,17 @@ def buat_cbz(tujuan: Path, berkas: list[tuple[Path, InfoGambar, str]], info_sumb
                            "ukuran": len(data), "sha256": hashlib.sha256(data).hexdigest(), "host": host})
         manifest = {"versi": 1, "sumber": info_sumber, "gambar": gambar}
         z.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False))
+    return hasil_dari(Path(tujuan))
+
+
+def hasil_dari(path: Path) -> HasilCbz:
     md5, sha = hashlib.md5(), hashlib.sha256()
-    with open(tujuan, "rb") as f:
+    with open(path, "rb") as f:
         for potong in iter(lambda: f.read(1 << 20), b""):
             md5.update(potong)
             sha.update(potong)
-    return HasilCbz(Path(tujuan), Path(tujuan).stat().st_size, md5.hexdigest(), sha.hexdigest(), len(gambar), manifest)
+    manifest = baca_manifest(path)
+    return HasilCbz(Path(path), Path(path).stat().st_size, md5.hexdigest(), sha.hexdigest(), len(manifest["gambar"]), manifest)
 
 
 def baca_manifest(path: Path) -> dict:
