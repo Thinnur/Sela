@@ -10,7 +10,8 @@ import httpx
 
 Jenis = Literal["tidak_didukung", "tidak_ada", "berubah", "ditolak", "dibatasi", "sementara"]
 
-HOST_STATIS = {"komiku.org": "komiku", "img.komiku.org": "komiku", "komikindo.ch": "komikindo"}
+HOST_STATIS = {"komiku.org": "komiku", "img.komiku.org": "komiku", "thumbnail.komiku.org": "komiku",
+               "komikindo.ch": "komikindo"}
 USER_AGENT = "Mozilla/5.0 (compatible; Sela/1.0; pembaca pribadi)"
 MAKS_REDIRECT = 5
 
