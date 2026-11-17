@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
+from sela.api import pasang_api
 from sela.auth import butuh_sesi, pasang_rute_auth, pengguna_html, respons_tanpa_sesi
 from sela.setelan import Setelan
 
@@ -42,6 +43,7 @@ def buat_app(s: Setelan, l: Layanan) -> FastAPI:
         return JSONResponse({"galat": exc.detail}, status_code=exc.status_code, headers=exc.headers)
 
     pasang_rute_auth(app, s)
+    pasang_api(app)
 
     @app.get("/")
     def beranda(request: Request, u=Depends(pengguna_html)):
