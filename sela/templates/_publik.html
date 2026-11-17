@@ -1,0 +1,12 @@
+{% extends "dasar.html" %}
+{% block kelas_body %}hal-masuk{% endblock %}
+{% block konten %}
+<main class="masuk">
+  <article class="masuk-kartu dokumen">
+    <a class="logo fd" href="/masuk">Sela</a>
+    {% block isi_dokumen %}{% endblock %}
+    <p class="kecil lembut">Terakhir diperbarui 18 November 2026.</p>
+    <nav class="kecil tautan-publik"><a href="/masuk">Masuk</a><a href="/privasi">Kebijakan privasi</a><a href="/ketentuan">Ketentuan</a></nav>
+  </article>
+</main>
+{% endblock %}

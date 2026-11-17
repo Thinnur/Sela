@@ -9,7 +9,7 @@ from sela.drive import TokenDrive
 from sela.setelan import Setelan
 
 SCOPE_DRIVE = "https://www.googleapis.com/auth/drive.file"
-PUBLIK = ("/masuk", "/masuk/google", "/auth/callback")
+PUBLIK = ("/masuk", "/masuk/google", "/auth/callback", "/privasi", "/ketentuan")
 PUBLIK_AWALAN = ("/static/", "/dev/masuk/")
 LOOPBACK = ("127.0.0.1", "::1")
 GOOGLE_META = "https://accounts.google.com/.well-known/openid-configuration"
@@ -83,6 +83,14 @@ def pasang_rute_auth(app: FastAPI, s: Setelan) -> None:
     @app.get("/masuk")
     def masuk(request: Request):
         return app.state.templates.TemplateResponse(request, "masuk.html", {})
+
+    @app.get("/privasi")
+    def privasi(request: Request):
+        return app.state.templates.TemplateResponse(request, "privasi.html", {})
+
+    @app.get("/ketentuan")
+    def ketentuan(request: Request):
+        return app.state.templates.TemplateResponse(request, "ketentuan.html", {})
 
     @app.get("/masuk/google")
     async def masuk_google(request: Request):

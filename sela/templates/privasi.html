@@ -1,0 +1,20 @@
+{% extends "_publik.html" %}
+{% block judul %}Kebijakan privasi · Sela{% endblock %}
+{% block isi_dokumen %}
+<h1 class="fd">Kebijakan privasi</h1>
+<p>Sela adalah rak komik pribadi untuk dua orang. Sela tidak terbuka untuk umum, tidak memasang iklan, dan tidak memakai pelacak.</p>
+<h2 class="fd">Data yang disimpan</h2>
+<ul>
+  <li>Dari akun Google: ID akun, alamat email, dan nama. Data ini dipakai untuk memastikan hanya dua akun yang diizinkan bisa masuk.</li>
+  <li>Data membaca tiap akun: posisi baca, chapter yang sudah dibaca, dan pilihan latar reader.</li>
+  <li>Koleksi bersama: judul, daftar chapter, dan arsip gambar chapter.</li>
+</ul>
+<h2 class="fd">Tempat penyimpanan</h2>
+<p>Basis data Sela ada di server pribadi pemiliknya. Arsip chapter dan salinan basis data disimpan di Google Drive milik pemilik Sela.</p>
+<h2 class="fd">Akses Google Drive</h2>
+<p>Sela meminta izin <code>drive.file</code>, yang hanya memberi akses ke file dan folder yang dibuat oleh Sela sendiri. Sela tidak bisa membaca file lain di Drive tersebut. Izin ini hanya diminta dari akun pemilik, bukan dari setiap pengguna.</p>
+<h2 class="fd">Berbagi data</h2>
+<p>Data tidak dijual, tidak dibagikan ke pihak lain, dan tidak dipakai untuk iklan atau melatih AI. Posisi baca satu akun tidak ditampilkan ke akun lain.</p>
+<h2 class="fd">Menghapus data</h2>
+<p>Kamu bisa mencabut akses Sela kapan saja lewat <a href="https://myaccount.google.com/permissions">pengaturan akun Google</a>. Untuk menghapus data akunmu dari Sela, hubungi pemilik Sela.</p>
+{% endblock %}

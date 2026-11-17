@@ -68,6 +68,13 @@ def test_halaman_masuk_publik(client):
     assert r.status_code == 200 and "Masuk dengan Google" in r.text
 
 
+@pytest.mark.parametrize("url,judul", [("/privasi", "Kebijakan privasi"), ("/ketentuan", "Ketentuan penggunaan")])
+def test_privasi_dan_ketentuan_publik(client, url, judul):
+    r = client.get(url, follow_redirects=False)
+    assert r.status_code == 200 and judul in r.text and "drive.file" in client.get("/privasi").text
+    assert 'href="/privasi"' in client.get("/masuk").text and 'href="/ketentuan"' in client.get("/masuk").text
+
+
 def test_post_origin_asing_403(client_masuk):
     assert client_masuk.post("/api/progres", headers={"origin": "https://evil.x"}).status_code == 403
     assert client_masuk.post("/api/progres", headers={"origin": ""}).status_code == 403

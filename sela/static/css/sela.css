@@ -347,3 +347,13 @@ progress::-moz-progress-bar { background: var(--lavender); border-radius: 3px; }
 .daftar-chapter .ini { color: var(--lavender); font-weight: 700; }
 .daftar-chapter .ikon { color: var(--teal); }
 @media (min-width: 720px) { .akhir { padding-bottom: 160px; } }
+
+/* halaman publik */
+.dokumen { max-width: 640px; }
+.dokumen h1 { font-size: 24px; }
+.dokumen h2 { font-size: 17px; margin-top: 4px; }
+.dokumen ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.dokumen a:not(.logo) { color: var(--lavender-tua); text-decoration: underline; }
+.dokumen code { background: var(--pasir-muda); border-radius: 6px; padding: 1px 6px; font-size: 13px; }
+.tautan-publik { display: flex; gap: 14px; flex-wrap: wrap; color: var(--lembut); }
+.tautan-publik a { text-decoration: underline; }

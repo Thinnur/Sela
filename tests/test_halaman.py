@@ -108,7 +108,7 @@ def test_judul_tidak_ada_404(app):
     assert masuk(app, 1).get("/judul/99").status_code == 404
 
 
-@pytest.mark.parametrize("url", ["/", "/rak", "/judul/1", "/aktivitas", "/akun", "/masuk"])
+@pytest.mark.parametrize("url", ["/", "/rak", "/judul/1", "/aktivitas", "/akun", "/masuk", "/privasi", "/ketentuan"])
 def test_patuh_csp_tanpa_inline(app, url):
     h = html(app, url)
     assert not re.search(r"\sstyle=", h), "atribut style inline diblokir CSP"
