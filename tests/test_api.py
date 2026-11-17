@@ -77,6 +77,14 @@ def test_progres_409_kembalikan_posisi(env):
     assert r.status_code == 409 and r.json()["posisi"] == {"chapter_id": 2, "indeks": 3, "fraksi": 0.5, "rev": 1}
 
 
+def test_ambil_posisi_terbaru(env):
+    f = env.client(1)
+    assert f.get("/api/progres/1").json() == {"posisi": None}
+    f.post("/api/progres", json={"series_id": 1, "chapter_id": 2, "indeks": 3, "fraksi": 0.5, "rev": 0})
+    assert f.get("/api/progres/1").json() == {"posisi": {"chapter_id": 2, "indeks": 3, "fraksi": 0.5, "rev": 1}}
+    assert env.client(2).get("/api/progres/1").json() == {"posisi": None}
+
+
 def test_gambar_dari_cache_header(env, tmp_path):
     env.arsip(tmp_path)
     r = env.client(1).get("/api/chapter/1/gambar/1")

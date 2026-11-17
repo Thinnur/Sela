@@ -5,6 +5,7 @@ import time
 
 from sela import progres
 from sela.pembaru import NAMA_SITUS
+from sela.urutan import jendela_lima
 
 STATUS_ARSIP = {
     "antre": "Antre", "mengunduh": "Mengunduh", "mengunggah": "Mengunggah", "memverifikasi": "Memverifikasi",
@@ -138,6 +139,39 @@ def detail(conn: sqlite3.Connection, uid: int, series_id: int, f: str | None = N
     return {"s": dict(s) | {"alias": json.loads(s["alias"])}, "sumber": sumber, "cadangan": cadangan, "baris": baris,
             "hitung": hitung, "total": sum(1 for b in baris if b["status"] != "hanya_cadangan"),
             "lanjut": dict(lanjut) if lanjut else None, "pertama": chapter_pertama_siap(conn, series_id)}
+
+
+def baca(conn: sqlite3.Connection, uid: int, chapter_id: int) -> dict | None:
+    c = conn.execute("select * from chapters where id=?", (chapter_id,)).fetchone()
+    if c is None:
+        return None
+    s = conn.execute("select id, judul from series where id=?", (c["series_id"],)).fetchone()
+    semua = [dict(x) for x in conn.execute(
+        "select c.id, c.label, c.label_normal, c.status, r.status baca from chapters c left join chapter_reads r "
+        "on r.chapter_id=c.id and r.user_id=? where c.series_id=? and c.status != 'hanya_cadangan' order by c.kunci_urut",
+        (uid, c["series_id"]))]
+    i = next(k for k, x in enumerate(semua) if x["id"] == chapter_id)
+    per_label = {x["label_normal"]: x for x in semua}
+    petak = []
+    for ln in jendela_lima([x["label_normal"] for x in semua], c["label_normal"]):
+        x = per_label[ln]
+        keadaan = "belum-siap" if x["status"] != "siap" else ("selesai" if x["baca"] == "selesai" else "belum")
+        petak.append({"id": x["id"], "label": ln, "keadaan": keadaan})
+    berikut = dict(semua[i + 1]) if i + 1 < len(semua) else None
+    if berikut and berikut["status"] == "mengunduh":
+        j = conn.execute("select checkpoint from jobs where target=? and status='berjalan'", (berikut["id"],)).fetchone()
+        cp = json.loads(j[0]) if j else {}
+        berikut["persen"] = round(100 * cp.get("gambar_selesai", 0) / cp["gambar_total"]) if cp.get("gambar_total") else 0
+    if berikut:
+        berikut["status_teks"] = STATUS_ARSIP[berikut["status"]]
+    sebelum = semua[i - 1] if i > 0 and semua[i - 1]["status"] == "siap" else None
+    arsip = conn.execute("select manifest from archives where chapter_id=?", (chapter_id,)).fetchone()
+    posisi = progres.ambil_posisi(conn, uid, c["series_id"])
+    latar = conn.execute("select latar_reader from users where id=?", (uid,)).fetchone()[0]
+    return {"c": dict(c), "s": dict(s), "gambar": json.loads(arsip[0])["gambar"] if arsip else None,
+            "posisi": posisi if posisi and posisi.chapter_id == chapter_id else None, "rev": posisi.rev if posisi else 0,
+            "latar": latar, "sebelum": sebelum, "berikut": berikut, "petak": petak, "semua": semua,
+            "selesai": semua[i]["baca"] == "selesai", "status_teks": STATUS_ARSIP[c["status"]]}
 
 
 def aktivitas(conn: sqlite3.Connection, batas: int = 30) -> list[dict]:

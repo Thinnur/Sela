@@ -94,6 +94,13 @@ def buat_app(s: Setelan, l: Layanan) -> FastAPI:
         progres.catat_kunjungan(conn, u["id"], series_id, time.time())
         return resp
 
+    @app.get("/baca/{chapter_id}")
+    def halaman_baca(request: Request, chapter_id: int, u=Depends(pengguna_html), conn=Depends(koneksi)):
+        d = tampilan.baca(conn, u["id"], chapter_id)
+        if d is None:
+            raise HTTPException(404, detail="chapter tidak ditemukan")
+        return app.state.templates.TemplateResponse(request, "baca.html", {"u": u, "d": d})
+
     @app.get("/aktivitas")
     def halaman_aktivitas(request: Request, u=Depends(pengguna_html), conn=Depends(koneksi)):
         sumber = [dict(x) | {"situs": NAMA_SITUS[x["adapter"]], "dicek": tampilan.waktu_relatif(x["cek_sukses_terakhir"])}

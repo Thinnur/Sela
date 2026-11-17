@@ -98,6 +98,11 @@ def pasang_api(app: FastAPI) -> None:
             return galat(422, str(e))
         return {"rev": pos.rev}
 
+    @r.get("/api/progres/{series_id}")
+    def ambil_progres(series_id: int, u=Depends(pengguna_api), conn=Depends(koneksi)):
+        pos = progres.ambil_posisi(conn, u["id"], series_id)
+        return {"posisi": vars(pos) if pos else None}
+
     @r.post("/api/chapter/{chapter_id}/selesai", status_code=204)
     def selesai(chapter_id: int, u=Depends(pengguna_api), conn=Depends(koneksi)):
         progres.tandai_selesai(conn, u["id"], chapter_id, time.time())

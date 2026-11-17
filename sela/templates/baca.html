@@ -1,0 +1,115 @@
+{% extends "dasar.html" %}
+{% from "_makro.html" import ikon %}
+{% block judul %}{{ d.c.label }} · {{ d.s.judul }}{% endblock %}
+{% block warna_tema %}{{ '#2A211D' if d.latar == 'gelap' else '#FBF6EE' }}{% endblock %}
+{% block kelas_body %}reader latar-{{ d.latar }}{% endblock %}
+{% block konten %}
+<header class="bilah bilah-atas">
+  <a class="bilah-tombol" href="/judul/{{ d.s.id }}" aria-label="Kembali ke detail judul">{{ ikon('chevron-left') }}</a>
+  <button class="bilah-tengah" type="button" id="buka-daftar" aria-haspopup="dialog">
+    <span class="kecil bilah-sub">{{ d.s.judul }}</span>
+    <span class="fd">{{ d.c.label }} {{ ikon('chevron-down') }}</span>
+  </button>
+  <button class="bilah-tombol" type="button" id="buka-daftar-2" aria-label="Daftar chapter">{{ ikon('list') }}</button>
+</header>
+
+<main id="reader" class="baca" data-series="{{ d.s.id }}" data-chapter="{{ d.c.id }}" data-rev="{{ d.rev }}"
+      data-indeks="{{ d.posisi.indeks if d.posisi else '' }}" data-fraksi="{{ d.posisi.fraksi if d.posisi else '' }}"
+      data-selesai="{{ '1' if d.selesai else '' }}">
+  <div id="tawaran" class="tawaran" role="status" hidden>
+    <span>Posisi di perangkat lain lebih baru.</span>
+    <button class="tautan" type="button" id="ikuti-tawaran">Lanjut dari sana</button>
+  </div>
+  {% if d.gambar %}
+  <div class="strip">
+    {%- for g in d.gambar %}<img src="/api/chapter/{{ d.c.id }}/gambar/{{ g.n }}" width="{{ g.lebar }}" height="{{ g.tinggi }}" loading="lazy" decoding="async" alt="Halaman {{ g.n }}">{% endfor -%}
+  </div>
+  {% else %}
+  <div class="belum-siap">
+    <p class="fd">{{ d.c.label }} belum siap dibaca</p>
+    <p class="kecil bilah-sub">Status sekarang: {{ d.status_teks }}. Chapter akan bisa dibuka setelah tersimpan di Drive.</p>
+    <a class="tombol tombol-garis kecil-tombol" href="/judul/{{ d.s.id }}">Kembali ke detail judul</a>
+  </div>
+  {% endif %}
+
+  {% if d.gambar %}
+  <section class="akhir" aria-label="Akhir chapter">
+    <div class="akhir-kartu" id="kartu-selesai" {% if not d.selesai %}hidden{% endif %}>
+      <span class="bulat-teal">{{ ikon('check') }}</span>
+      <span class="akhir-teks"><span class="fd">{{ d.c.label }} selesai</span><span class="kecil bilah-sub">Ditandai karena kamu sampai akhir</span></span>
+      <button class="tautan-polos kecil" type="button" id="batal-selesai">Batalkan</button>
+    </div>
+    {% if d.berikut %}
+    <div class="kartu-berikut tone">
+      <div class="berikut-kepala"><span class="kecil">Berikutnya</span><span class="fd">{{ d.berikut.label }}</span></div>
+      {% if d.berikut.status == 'siap' %}
+      <a class="tombol tombol-utama tombol-penuh" href="/baca/{{ d.berikut.id }}">{{ ikon('player-play') }}Lanjut {{ d.berikut.label | lower }}</a>
+      {% else %}
+      <p class="berikut-status">{{ d.berikut.status_teks }}{% if d.berikut.persen %} {{ d.berikut.persen }}%{% endif %}. Chapter ini bisa dibuka setelah selesai diunduh.</p>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="kartu-berikut tone"><span class="fd">Ini chapter terbaru</span><span class="kecil">Chapter baru akan masuk otomatis saat terbit.</span></div>
+    {% endif %}
+    {% if d.petak %}
+    <div class="lompat">
+      <div class="lompat-kepala"><span class="kecil bilah-sub">Lompat ke chapter</span><button class="tautan-polos kecil" type="button" id="buka-daftar-3">Semua chapter</button></div>
+      <div class="petak-baris">
+        {% for p in d.petak %}
+        {% if p.keadaan == 'belum-siap' %}
+        <span class="petak petak-belum-siap" title="Belum siap">
+          <span class="fd">{{ p.label }}</span>{{ ikon('download') }}</span>
+        {% else %}
+        <a class="petak petak-{{ p.keadaan }}{% if d.berikut and p.id == d.berikut.id %} petak-berikut{% endif %}" href="/baca/{{ p.id }}">
+          <span class="fd">{{ p.label }}</span>{% if p.keadaan == 'selesai' %}{{ ikon('circle-check') }}{% else %}<span class="titik-koral" aria-label="belum dibaca"></span>{% endif %}</a>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    <a class="tombol tombol-garis tombol-penuh" href="/judul/{{ d.s.id }}">Kembali ke detail judul</a>
+  </section>
+  {% endif %}
+</main>
+
+<footer class="bilah bilah-bawah">
+  <div class="bilah-baris">
+    {% if d.sebelum %}<a class="bilah-tombol" href="/baca/{{ d.sebelum.id }}" aria-label="Chapter sebelumnya">{{ ikon('player-skip-back') }}</a>
+    {% else %}<span class="bilah-tombol mati" aria-hidden="true">{{ ikon('player-skip-back') }}</span>{% endif %}
+    <input type="range" id="geser" min="0" max="{{ (d.gambar | length) - 1 if d.gambar else 0 }}" value="0" step="1" aria-label="Pindah ke gambar">
+    <span class="kecil" id="persen">0%</span>
+    {% if d.berikut and d.berikut.status == 'siap' %}<a class="bilah-tombol" href="/baca/{{ d.berikut.id }}" aria-label="Chapter berikutnya">{{ ikon('player-skip-forward') }}</a>
+    {% else %}<span class="bilah-tombol mati" aria-hidden="true">{{ ikon('player-skip-forward') }}</span>{% endif %}
+  </div>
+  <div class="bilah-baris">
+    <span class="kecil bilah-sub" id="status-simpan">{{ ikon('cloud-check') }}<span id="status-simpan-teks">Posisi tersimpan</span></span>
+    <a class="kecil tautan-polos" id="masuk-lagi" href="/masuk" hidden>Masuk lagi untuk menyimpan posisi</a>
+    <button class="bilah-tombol" type="button" id="buka-pengaturan" aria-label="Pengaturan baca">{{ ikon('adjustments-horizontal') }}</button>
+  </div>
+</footer>
+
+<dialog id="pengaturan" class="lembar" aria-labelledby="judul-pengaturan">
+  <div class="lembar-pegangan"></div>
+  <h2 id="judul-pengaturan" class="fd">Pengaturan baca</h2>
+  <p class="kecil bilah-sub">Latar</p>
+  <div class="segmen-latar" role="group" aria-label="Latar">
+    <button type="button" data-latar="gelap" aria-pressed="{{ 'true' if d.latar == 'gelap' else 'false' }}">{{ ikon('moon') }}Gelap</button>
+    <button type="button" data-latar="kertas" aria-pressed="{{ 'true' if d.latar == 'kertas' else 'false' }}">{{ ikon('sun') }}Kertas</button>
+  </div>
+  <p class="kecil bilah-sub catatan-latar">{{ ikon('user-check') }}Disimpan untuk akun {{ u.nama or u.email }}, ikut ke semua perangkatmu</p>
+  <button class="tombol tombol-garis kecil-tombol tutup-lembar" type="button">Tutup</button>
+</dialog>
+
+<dialog id="daftar" class="lembar lembar-tinggi" aria-labelledby="judul-daftar">
+  <div class="lembar-pegangan"></div>
+  <h2 id="judul-daftar" class="fd">{{ d.s.judul }}</h2>
+  <ol class="daftar-chapter">
+    {% for x in d.semua | reverse %}
+    <li>{% if x.status == 'siap' %}<a href="/baca/{{ x.id }}" class="{% if x.id == d.c.id %}ini{% endif %}"{% if x.id == d.c.id %} aria-current="page"{% endif %}>{{ x.label }}{% if x.baca == 'selesai' %}{{ ikon('circle-check') }}{% endif %}</a>
+        {% else %}<span class="bilah-sub">{{ x.label }}, belum siap</span>{% endif %}</li>
+    {% endfor %}
+  </ol>
+  <button class="tombol tombol-garis kecil-tombol tutup-lembar" type="button">Tutup</button>
+</dialog>
+{% endblock %}
+{% block skrip %}<script src="/static/js/reader.js" defer></script>{% endblock %}
