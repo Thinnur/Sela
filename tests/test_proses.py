@@ -122,3 +122,12 @@ def test_checkpoint_progres_gambar(env):
     asyncio.run(ingest.proses_chapter(*env.args(1)))
     cp = json.loads(env.conn.execute("select checkpoint from jobs where id=1").fetchone()[0])
     assert cp["gambar_total"] == 3 and cp["gambar_selesai"] == 3
+
+
+def test_chapter_sudah_siap_tidak_diproses_ulang(env):
+    asyncio.run(ingest.proses_chapter(*env.args(1)))
+    env.conn.execute("update jobs set status='berjalan'")
+    env.gambar[0] = b"<html>"  # kalau diunduh ulang, pasti gagal
+    asyncio.run(ingest.proses_chapter(*env.args(1)))
+    assert env.drive.jumlah() == 1 and status(env) == "siap"
+    assert env.conn.execute("select status from jobs where id=1").fetchone()[0] == "selesai"

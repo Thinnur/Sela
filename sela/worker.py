@@ -43,8 +43,12 @@ def coba_lagi_sumber(conn: sqlite3.Connection, sumber_id: int) -> None:
 
 def coba_lagi_chapter(conn: sqlite3.Connection, chapter_id: int) -> None:
     with db.transaksi(conn):
+        if conn.execute("select 1 from jobs where target=? and jenis='unduh_chapter' and status in ('antre','berjalan')",
+                        (chapter_id,)).fetchone():
+            return  # sudah ada job aktif untuk chapter ini
         conn.execute("update jobs set status='antre', percobaan=0, jalan_setelah=0, jenis_error=null, pesan_error=null "
-                     "where target=? and jenis='unduh_chapter' and status='gagal'", (chapter_id,))
+                     "where id=(select id from jobs where target=? and jenis='unduh_chapter' and status='gagal' "
+                     "order by diperbarui desc, id desc limit 1)", (chapter_id,))
         conn.execute("update chapters set status='antre', pesan_status=null where id=? and status in ('gagal','menunggu_ulang')",
                      (chapter_id,))
 
@@ -94,11 +98,15 @@ class Worker:
             kandidat = conn.execute(
                 "select j.id, j.target, ss.adapter from jobs j join series_sources ss on ss.id=j.sumber_id "
                 "where j.jenis='unduh_chapter' and j.status='antre' and j.jalan_setelah <= ? "
-                "and coalesce(ss.jenis_error, '') != 'ditolak' order by j.jalan_setelah, j.id", (self.jam(),)).fetchall()
+                "and coalesce(ss.jenis_error, '') != 'ditolak' and not exists(select 1 from jobs b where b.target=j.target "
+                "and b.jenis='unduh_chapter' and b.status='berjalan') order by j.jalan_setelah, j.id", (self.jam(),)).fetchall()
             mulai = 0
+            diklaim = set()
             for job in kandidat:
                 if mulai >= slot:
                     break
+                if job["target"] in diklaim:
+                    continue  # satu chapter hanya boleh diproses satu job
                 situs = job["adapter"]
                 if situs in self.turun and any(st == situs for _, st in self.berjalan.values()):
                     continue
@@ -109,6 +117,7 @@ class Worker:
                 if conn.execute("update jobs set status='berjalan', diperbarui=? where id=? and status='antre'",
                                 (self.jam(), job["id"])).rowcount != 1:
                     continue
+                diklaim.add(job["target"])
                 tugas = asyncio.create_task(self._jalankan(job["id"], situs))
                 self.berjalan[job["id"]] = (tugas, situs)
                 mulai += 1

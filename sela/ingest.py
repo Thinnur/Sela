@@ -221,6 +221,9 @@ async def proses_chapter(buka_db: Callable[[], sqlite3.Connection], p: Pengambil
     conn = buka_db()
     try:
         job = conn.execute("select * from jobs where id=?", (job_id,)).fetchone()
+        if conn.execute("select 1 from archives where chapter_id=?", (job["target"],)).fetchone():
+            conn.execute("update jobs set status='selesai', diperbarui=? where id=?", (time.time(), job_id))
+            return  # chapter sudah siap lewat job lain; jangan unduh ulang atau ganti sumbernya
         chapter = conn.execute("select * from chapters where id=?", (job["target"],)).fetchone()
         sumber = conn.execute("select * from series_sources where id=?", (job["sumber_id"],)).fetchone()
         series = conn.execute("select * from series where id=?", (chapter["series_id"],)).fetchone()

@@ -99,7 +99,9 @@ def ambil_dari_cadangan(conn: sqlite3.Connection, chapter_id: int) -> int:
     if r is None:
         raise LookupError("chapter ini tidak ada di sumber cadangan")
     with db.transaksi(conn):
-        conn.execute("update chapters set status='antre', pesan_status=null where id=?", (chapter_id,))
+        conn.execute("update jobs set status='gagal', jenis_error='dibatalkan', pesan_error='Diganti ke sumber cadangan' "
+                     "where target=? and jenis='unduh_chapter' and status='antre' and sumber_id != ?", (chapter_id, r[0]))
+        conn.execute("update chapters set status='antre', pesan_status=null where id=? and status != 'siap'", (chapter_id,))
         return buat_job_unduh(conn, chapter_id, r[0], time.time())
 
 
@@ -134,7 +136,8 @@ def ganti_sumber_utama(conn: sqlite3.Connection, series_id: int, sumber_id: int)
                      "where sumber_id=? and jenis='unduh_chapter' and status='antre'", (lama,))
         menunggu = conn.execute(
             "select c.id from chapters c join chapter_sources cs on cs.chapter_id=c.id and cs.sumber_id=? "
-            "where c.series_id=? and c.status != 'siap' and not exists(select 1 from archives a where a.chapter_id=c.id)",
+            "where c.series_id=? and c.status != 'siap' and not exists(select 1 from archives a where a.chapter_id=c.id) "
+            "and not exists(select 1 from jobs j where j.target=c.id and j.status='berjalan')",
             (sumber_id, series_id)).fetchall()
         jam = time.time()
         for r in menunggu:

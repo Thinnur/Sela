@@ -166,3 +166,19 @@ def test_ganti_sumber_utama(conn, judul):
     assert hitung(conn, "jobs where sumber_id=? and status='antre'", utama) == 0
     assert hitung(conn, "jobs where sumber_id=? and status='antre'", cad) == 25
     assert conn.execute("select drive_file_id from archives where chapter_id=?", (c1,)).fetchone()[0] == "F"
+
+
+def test_ambil_cadangan_membatalkan_job_lain(conn, judul):
+    c1 = conn.execute("select id from chapters where label_normal='1'").fetchone()[0]
+    pembaru.ambil_dari_cadangan(conn, c1)
+    aktif = [tuple(r) for r in conn.execute("select sumber_id from jobs where target=? and status in ('antre','berjalan')", (c1,))]
+    assert aktif == [(id_sumber(conn, "cadangan"),)]
+
+
+def test_ganti_sumber_lewati_chapter_yang_berjalan(conn, judul):
+    utama, cad = id_sumber(conn, "utama"), id_sumber(conn, "cadangan")
+    c1 = conn.execute("select id from chapters where label_normal='1'").fetchone()[0]
+    conn.execute("update jobs set status='berjalan' where target=?", (c1,))
+    pembaru.ganti_sumber_utama(conn, judul, cad)
+    assert hitung(conn, "jobs where target=? and sumber_id=?", c1, cad) == 0
+    assert hitung(conn, "jobs where target=? and status='berjalan'", c1) == 1

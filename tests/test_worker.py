@@ -262,3 +262,33 @@ def test_coba_lagi_chapter(path_db, setelan):
     coba_lagi_chapter(c, 1)
     assert tuple(c.execute("select j.status, j.percobaan, ch.status from jobs j join chapters ch on ch.id=j.target").fetchone()) == ("antre", 0, "antre")
     c.close()
+
+
+def test_klaim_lewati_chapter_yang_sedang_diproses(path_db, setelan):
+    async def lambat(*a):
+        await asyncio.sleep(0.05)
+
+    (j1,) = buat_job(path_db, 1, sumber_id=1)
+    c = db.buka(path_db)
+    ingest.buat_job_unduh(c, 1, 2, 0.0)  # job kedua untuk chapter yang sama, dari cadangan
+    c.close()
+    w = worker(path_db, setelan, lambat, paralel=3)
+
+    async def jalan():
+        mulai = await w.satu_putaran()
+        await tunggu_berjalan(w)
+        return mulai
+
+    assert asyncio.run(jalan()) == 1
+
+
+def test_coba_lagi_hanya_job_terbaru(path_db, setelan):
+    buat_job(path_db, 1, sumber_id=1)
+    c = db.buka(path_db)
+    j2 = ingest.buat_job_unduh(c, 1, 2, 5.0)
+    c.execute("update jobs set status='gagal'")
+    c.execute("update jobs set diperbarui=10 where id=?", (j2,))
+    c.execute("update chapters set status='gagal'")
+    coba_lagi_chapter(c, 1)
+    assert [tuple(r) for r in c.execute("select id, status from jobs order by id")] == [(1, "gagal"), (j2, "antre")]
+    c.close()
