@@ -17,6 +17,8 @@ from sela.setelan import Setelan
 
 JADWAL_ULANG = (60, 300, 1800, 7200)
 MAKS_PERCOBAAN = 5
+PESAN_MATI = "Proses berhenti mendadak berulang kali (mungkin kehabisan memori)"
+JEDA_DRIVE = 300
 CADANGAN_JOB = 40_000_000  # perkiraan ruang satu chapter yang sedang diproses (gambar + CBZ)
 log = logging.getLogger("sela.worker")
 
@@ -78,8 +80,16 @@ class Worker:
         conn = self.buka_db()
         try:
             with db.transaksi(conn):
-                conn.execute("update jobs set status='antre' where status='berjalan'")
                 conn.execute("update chapters set status='antre' where status in ('mengunduh','mengunggah','memverifikasi')")
+                # job yang tertinggal 'berjalan' berarti proses mati di tengah (misal kehabisan memori): hitung sebagai percobaan
+                for j in conn.execute("select id, target, percobaan from jobs where status='berjalan'").fetchall():
+                    percobaan = j["percobaan"] + 1
+                    if percobaan >= MAKS_PERCOBAAN:
+                        conn.execute("update jobs set status='gagal', percobaan=?, jenis_error='sementara', pesan_error=? "
+                                     "where id=?", (percobaan, PESAN_MATI, j["id"]))
+                        conn.execute("update chapters set status='gagal', pesan_status=? where id=?", (PESAN_MATI, j["target"]))
+                    else:
+                        conn.execute("update jobs set status='antre', percobaan=? where id=?", (percobaan, j["id"]))
         finally:
             conn.close()
 
@@ -92,6 +102,8 @@ class Worker:
         try:
             if db.kv_ambil(conn, "antrean_jeda") == "1" or db.kv_ambil(conn, "drive_status") == "perlu_sambung":
                 return 0
+            if float(db.kv_ambil(conn, "drive_jeda_sampai") or 0) > self.jam():
+                return 0  # Drive sedang membatasi: jangan unduh chapter baru yang tidak bisa diunggah
             slot = self.s.chapter_paralel - len(self.berjalan)
             if slot <= 0:
                 return 0
@@ -158,6 +170,10 @@ class Worker:
             db.kv_set(conn, "drive_status", "perlu_sambung")
             kembali_antre("menunggu_ulang", "Drive perlu disambungkan ulang")
             return
+        if isinstance(err, DriveError) and err.jenis == "dibatasi":
+            db.kv_set(conn, "drive_jeda_sampai", str(now + JEDA_DRIVE))
+            kembali_antre("menunggu_ulang", "Drive sedang membatasi. Dilanjutkan otomatis.", now + JEDA_DRIVE)
+            return
         if isinstance(err, OSError) and err.errno == errno.ENOSPC:
             shutil.rmtree(self.s.dir_tmp / str(job_id), ignore_errors=True)
             kembali_antre("menunggu_ruang", "Menunggu ruang disk VPS")
@@ -180,7 +196,7 @@ class Worker:
             gagal(pesan, jenis)
             return
         jeda = JADWAL_ULANG[min(percobaan, len(JADWAL_ULANG)) - 1]
-        if isinstance(err, SumberError) and err.jenis == "dibatasi":
+        if isinstance(err, SumberError) and (err.jenis == "dibatasi" or err.lambat):
             self.turunkan_situs(situs)
             jeda = max(jeda, err.retry_after or 0)
         kembali_antre("menunggu_ulang", f"{pesan}. Dicoba lagi otomatis.", now + jeda)

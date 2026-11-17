@@ -122,3 +122,28 @@ def test_semafor_per_situs():
 
     asyncio.run(semua())
     assert aktif["puncak"] == 8
+
+
+def test_timeout_ditandai_lambat():
+    def handler(request):
+        raise httpx.ReadTimeout("lambat", request=request)
+
+    with pytest.raises(SumberError) as e:
+        asyncio.run(pengambil(handler).ambil("https://komiku.org/x"))
+    assert e.value.lambat is True
+
+
+def test_jeda_antar_request_per_situs():
+    waktu = []
+
+    def handler(request):
+        waktu.append(asyncio.get_event_loop().time())
+        return httpx.Response(200)
+
+    p = pengambil(handler, per_situs=1, jeda=0.1)
+
+    async def semua():
+        await asyncio.gather(*(p.ambil(f"https://img.komiku.org/{i}.jpg") for i in range(3)))
+
+    asyncio.run(semua())
+    assert all(b - a >= 0.09 for a, b in zip(waktu, waktu[1:]))

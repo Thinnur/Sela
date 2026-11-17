@@ -17,6 +17,9 @@ from sela.web import Layanan, buat_app
 from sela.worker import Worker
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+# httpx mencatat URL lengkap di level INFO, termasuk URL sesi unggah Drive dan query CDN
+for _nama in ("httpx", "httpcore"):
+    logging.getLogger(_nama).setLevel(logging.WARNING)
 
 
 def token_drive(s: Setelan) -> TokenDrive:

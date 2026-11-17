@@ -17,11 +17,12 @@ MAKS_REDIRECT = 5
 
 
 class SumberError(Exception):
-    def __init__(self, jenis: Jenis, pesan: str, retry_after: float | None = None):
+    def __init__(self, jenis: Jenis, pesan: str, retry_after: float | None = None, lambat: bool = False):
         super().__init__(f"{jenis}: {pesan}")
         self.jenis = jenis
         self.pesan = pesan
         self.retry_after = retry_after
+        self.lambat = lambat
 
 
 @dataclass(frozen=True)
@@ -53,8 +54,9 @@ def _retry_after(nilai: str | None) -> float | None:
 
 class PengambilAman:
     def __init__(self, client: httpx.AsyncClient, per_situs: int = 8,
-                 resolver: Callable[[str], list[str]] = resolve_dns, maks_byte: int = 20_000_000):
+                 resolver: Callable[[str], list[str]] = resolve_dns, maks_byte: int = 20_000_000, jeda: float = 0.25):
         self.client = client
+        self.jeda = jeda  # jeda sopan antar-request per slot situs
         self.per_situs = per_situs
         self.resolver = resolver
         self.maks_byte = maks_byte
@@ -86,26 +88,33 @@ class PengambilAman:
         situs = self.situs_dari(url)
         semafor = self._semafor.setdefault(situs, asyncio.Semaphore(self.per_situs))
         async with semafor:
-            for _ in range(MAKS_REDIRECT + 1):
-                self.situs_dari(url)
-                await self._cek_ip(urlsplit(url).hostname or "")
-                headers = {"user-agent": USER_AGENT}
-                if referer:
-                    headers["referer"] = referer
-                try:
-                    resp = await self.client.send(self.client.build_request("GET", url, headers=headers), stream=True)
-                except httpx.TimeoutException as e:
-                    raise SumberError("sementara", "waktu habis") from e
-                except httpx.TransportError as e:
-                    raise SumberError("sementara", "koneksi gagal") from e
-                try:
-                    if resp.is_redirect:
-                        url = urljoin(url, resp.headers["location"])
-                        continue
-                    self._cek_status(resp)
-                    return Respons(url, resp.headers, await self._baca(resp))
-                finally:
-                    await resp.aclose()
+            try:
+                return await self._ambil_dalam_slot(url, referer)
+            finally:
+                if self.jeda:
+                    await asyncio.sleep(self.jeda)
+
+    async def _ambil_dalam_slot(self, url: str, referer: str | None) -> Respons:
+        for _ in range(MAKS_REDIRECT + 1):
+            self.situs_dari(url)
+            await self._cek_ip(urlsplit(url).hostname or "")
+            headers = {"user-agent": USER_AGENT}
+            if referer:
+                headers["referer"] = referer
+            try:
+                resp = await self.client.send(self.client.build_request("GET", url, headers=headers), stream=True)
+            except httpx.TimeoutException as e:
+                raise SumberError("sementara", "waktu habis", lambat=True) from e
+            except httpx.TransportError as e:
+                raise SumberError("sementara", "koneksi gagal") from e
+            try:
+                if resp.is_redirect:
+                    url = urljoin(url, resp.headers["location"])
+                    continue
+                self._cek_status(resp)
+                return Respons(url, resp.headers, await self._baca(resp))
+            finally:
+                await resp.aclose()
         raise SumberError("berubah", "terlalu banyak redirect")
 
     def _cek_status(self, resp: httpx.Response) -> None:

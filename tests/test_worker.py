@@ -292,3 +292,49 @@ def test_coba_lagi_hanya_job_terbaru(path_db, setelan):
     coba_lagi_chapter(c, 1)
     assert [tuple(r) for r in c.execute("select id, status from jobs order by id")] == [(1, "gagal"), (j2, "antre")]
     c.close()
+
+
+def test_drive_dibatasi_menjeda_antrean(path_db, setelan):
+    async def proses(*a):
+        raise DriveError("dibatasi", "Drive membatasi request")
+
+    buat_job(path_db, 3)
+    jam = Jam()
+    w = worker(path_db, setelan, proses, paralel=1, jam=jam)
+
+    async def jalan():
+        assert await w.satu_putaran() == 1
+        await tunggu_berjalan(w)
+        assert await w.satu_putaran() == 0
+        jam.t += 301
+        return await w.satu_putaran()
+
+    assert asyncio.run(jalan()) == 1
+    assert baris(path_db, "select max(percobaan) from jobs")[0] == 0
+
+
+def test_timeout_menurunkan_situs(path_db, setelan):
+    async def proses(*a):
+        raise SumberError("sementara", "waktu habis", lambat=True)
+
+    buat_job(path_db, 1)
+    w = worker(path_db, setelan, proses)
+
+    async def jalan():
+        await w.satu_putaran()
+        await tunggu_berjalan(w)
+
+    asyncio.run(jalan())
+    assert "komiku" in w.turun
+
+
+def test_mati_berulang_saat_diproses_akhirnya_gagal(path_db, setelan):
+    (j1, j2) = buat_job(path_db, 2)
+    c = db.buka(path_db)
+    c.execute("update jobs set status='berjalan', percobaan=4 where id=?", (j1,))
+    c.execute("update jobs set status='berjalan', percobaan=0 where id=?", (j2,))
+    c.close()
+    worker(path_db, setelan, None).pulihkan()
+    assert tuple(baris(path_db, "select status, percobaan from jobs where id=?", j1)) == ("gagal", 5)
+    assert "berhenti mendadak" in baris(path_db, "select c.pesan_status from chapters c join jobs j on j.target=c.id where j.id=?", j1)[0]
+    assert tuple(baris(path_db, "select status, percobaan from jobs where id=?", j2)) == ("antre", 1)

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from PIL import Image, UnidentifiedImageError
 
-MAKS_PIKSEL = 100_000_000
+MAKS_PIKSEL = 25_000_000  # RGB 25 juta piksel sekitar 75 MB; dua decode bersamaan tetap jauh di bawah MemoryMax 512M
 FORMAT = {"JPEG": ("image/jpeg", "jpg"), "PNG": ("image/png", "png"), "WEBP": ("image/webp", "webp"),
           "GIF": ("image/gif", "gif")}
 # satu strip manhwa panjang bisa memakan puluhan MB RAM saat di-decode

@@ -5,7 +5,7 @@ import zipfile
 import pytest
 
 from sela.cbz import GambarRusak, InfoGambar, baca_entri, buat_cbz, periksa_gambar
-from tests.gambar import jpeg_bytes, png_bytes, png_raksasa, webp_bytes
+from tests.gambar import gambar_bytes, jpeg_bytes, png_bytes, png_raksasa, webp_bytes
 
 
 def test_tipe_dari_isi_bukan_nama():
@@ -57,3 +57,13 @@ def test_baca_entri_di_luar_jangkauan(tmp_path):
     for n in (0, 4):
         with pytest.raises(LookupError):
             baca_entri(h.path, n)
+
+
+def test_batas_piksel_muat_di_memori():
+    import io
+    from PIL import Image
+    buf = io.BytesIO()
+    Image.new("1", (6000, 5000)).save(buf, "PNG")  # gambar sah 30 juta piksel; RGB-nya sekitar 90 MB
+    with pytest.raises(GambarRusak):
+        periksa_gambar(buf.getvalue())
+    assert periksa_gambar(gambar_bytes("PNG", 800, 20000)).tinggi == 20000  # strip manhwa panjang tetap lolos

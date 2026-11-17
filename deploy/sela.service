@@ -8,7 +8,7 @@ User=sela
 Group=sela
 WorkingDirectory=/srv/sela/app
 EnvironmentFile=/srv/sela/secrets/sela.env
-ExecStart=/srv/sela/app/.venv/bin/uvicorn sela.main:app --host 127.0.0.1 --port 8095 --proxy-headers --forwarded-allow-ips 127.0.0.1
+ExecStart=/srv/sela/app/.venv/bin/uvicorn sela.main:app --host 127.0.0.1 --port 8095 --proxy-headers --forwarded-allow-ips 127.0.0.1 --no-access-log
 Restart=on-failure
 RestartSec=5
 

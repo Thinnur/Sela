@@ -14,3 +14,12 @@ def test_titik_masuk_hidup_dan_drive_belum_tersambung(tmp_path):
     conn = db.buka(tmp_path / "root" / "data" / "sela.db")
     assert db.kv_ambil(conn, "drive_status") == "perlu_sambung"
     assert conn.execute("select count(*) from users").fetchone()[0] == 2
+
+
+def test_log_tidak_memuat_url_dan_kode(tmp_path):
+    import logging
+    from pathlib import Path
+    buat({**ENV, "SELA_ROOT": str(tmp_path / "r")})
+    assert logging.getLogger("httpx").getEffectiveLevel() >= logging.WARNING
+    assert logging.getLogger("httpcore").getEffectiveLevel() >= logging.WARNING
+    assert "--no-access-log" in (Path(__file__).parents[1] / "deploy" / "sela.service").read_text()
