@@ -1,0 +1,25 @@
+[project]
+name = "sela"
+version = "0.1.0"
+description = "Reader komik pribadi Fathin dan Putri"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "jinja2",
+    "httpx",
+    "authlib",
+    "itsdangerous",
+    "pillow",
+    "beautifulsoup4",
+]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
