@@ -1,8 +1,9 @@
 from sela.adapters.base import Adapter
+from sela.adapters.komikindo import KomikIndo
 from sela.adapters.komiku import Komiku
 from sela.fetch import SumberError
 
-ADAPTER: dict[str, Adapter] = {"komiku": Komiku()}
+ADAPTER: dict[str, Adapter] = {"komiku": Komiku(), "komikindo": KomikIndo()}
 
 
 def adapter_untuk(url: str) -> Adapter:
