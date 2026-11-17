@@ -107,7 +107,8 @@ def test_gambar_rusak_membatalkan_unduhan_lain(env):
         dilayani.append(n)
         return httpx.Response(200, content=env.gambar[n])
 
-    env.p = PengambilAman(httpx.AsyncClient(transport=httpx.MockTransport(handler)), resolver=lambda h: ["93.184.216.34"])
+    # jeda=0: tes ini tentang pembatalan, bukan jeda sopan antar-request
+    env.p = PengambilAman(httpx.AsyncClient(transport=httpx.MockTransport(handler)), resolver=lambda h: ["93.184.216.34"], jeda=0)
 
     async def jalan():
         with pytest.raises(GambarRusak):
