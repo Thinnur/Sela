@@ -1,0 +1,81 @@
+- generic [active] [ref=f4e1]:
+  - link "Langsung ke isi" [ref=f4e2] [cursor=pointer]:
+    - /url: "#utama"
+  - main [ref=f4e4]:
+    - generic [ref=f4e5]:
+      - generic [ref=f4e6]:
+        - heading "Hai, Fathin" [level=1] [ref=f4e7]
+        - paragraph [ref=f4e8]: 21 chapter baru menunggu
+      - link "Akun kamu" [ref=f4e9] [cursor=pointer]:
+        - /url: /akun
+        - text: F
+    - generic [ref=f4e10]:
+      - search [ref=f4e11]:
+        - textbox "Cari di rak" [ref=f4e14]
+      - button [ref=f4e15] [cursor=pointer]
+    - region "Lanjut baca" [ref=f4e18]:
+      - generic "Sedang kamu baca" [ref=f4e21]
+      - generic [ref=f4e22]:
+        - paragraph [ref=f4e23]: Lanjut baca punyamu
+        - paragraph [ref=f4e24]: Money Keeps Piling Up No Matter How Much I Spend
+        - paragraph [ref=f4e25]: Chapter 5 dari 8
+        - progressbar "Posisi baca 11%" [ref=f4e26]: 11%
+        - link "Lanjutkan" [ref=f4e27] [cursor=pointer]:
+          - /url: /baca/5
+    - navigation "Saring rak" [ref=f4e30]:
+      - link "Semua" [ref=f4e31] [cursor=pointer]:
+        - /url: /rak
+      - link "Dibaca" [ref=f4e33] [cursor=pointer]:
+        - /url: /rak?f=dibaca
+      - link "Baru 21" [ref=f4e35] [cursor=pointer]:
+        - /url: /rak?f=baru
+      - link "Manhwa" [ref=f4e37] [cursor=pointer]:
+        - /url: /rak?f=manhwa
+      - link "Manga" [ref=f4e39] [cursor=pointer]:
+        - /url: /rak?f=manga
+      - link "Manhua" [ref=f4e41] [cursor=pointer]:
+        - /url: /rak?f=manhua
+      - link "Selesai" [ref=f4e43] [cursor=pointer]:
+        - /url: /rak?f=selesai
+    - region [ref=f4e45]:
+      - generic [ref=f4e46]:
+        - heading "Rak bersama" [level=2] [ref=f4e47]
+        - link "Lihat semua" [ref=f4e48] [cursor=pointer]:
+          - /url: /rak
+      - generic [ref=f4e49]:
+        - link "Sedang kamu baca Money Keeps Piling Up No Matter How Much I Spend 8 ch" [ref=f4e50] [cursor=pointer]:
+          - /url: /judul/1
+          - generic "Sedang kamu baca" [ref=f4e52]
+          - generic [ref=f4e53]: Money Keeps Piling Up No Matter How Much I Spend
+          - generic [ref=f4e54]: 8 ch
+        - link "Sedang kamu baca Kafe Ujung Gang 4 ch, 4 baru" [ref=f4e55] [cursor=pointer]:
+          - /url: /judul/3
+          - generic "Sedang kamu baca" [ref=f4e57]
+          - generic [ref=f4e58]: Kafe Ujung Gang
+          - generic [ref=f4e59]: 4 ch, 4 baru
+        - link "Pedang Senja 6 ch, 6 baru" [ref=f4e60] [cursor=pointer]:
+          - /url: /judul/2
+          - generic [ref=f4e62]: Pedang Senja
+          - generic [ref=f4e63]: 6 ch, 6 baru
+        - link "Menara Lantai 99 5 ch, 5 baru" [ref=f4e64] [cursor=pointer]:
+          - /url: /judul/4
+          - generic [ref=f4e66]: Menara Lantai 99
+          - generic [ref=f4e67]: 5 ch, 5 baru
+        - link "Musim Semi Kedua 3 ch, 3 baru" [ref=f4e68] [cursor=pointer]:
+          - /url: /judul/5
+          - generic [ref=f4e70]: Musim Semi Kedua
+          - generic [ref=f4e71]: 3 ch, 3 baru
+        - link "Bulan di Atap 3 ch, 3 baru" [ref=f4e72] [cursor=pointer]:
+          - /url: /judul/6
+          - generic [ref=f4e74]: Bulan di Atap
+          - generic [ref=f4e75]: 3 ch, 3 baru
+  - navigation "Navigasi" [ref=f4e76]:
+    - link "Beranda" [ref=f4e77] [cursor=pointer]:
+      - /url: /
+    - link "Rak" [ref=f4e80] [cursor=pointer]:
+      - /url: /rak
+    - button "Tambah link judul" [ref=f4e83] [cursor=pointer]
+    - link "Aktivitas" [ref=f4e86] [cursor=pointer]:
+      - /url: /aktivitas
+    - link "Akun" [ref=f4e89] [cursor=pointer]:
+      - /url: /akun

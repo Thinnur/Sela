@@ -54,7 +54,12 @@
         const lain = (await r.json()).posisi;
         rev = lain.rev;
         if (bergerak) { await kirimPosisi(posisiSekarang(), keepalive); }   // pengguna sedang membaca di sini: tab ini menang
-        else { tawarkan(lain); }
+        else {
+          // belum menggulir: posisi perangkat lain yang menang, jangan kirim ulang saat tab ditutup
+          berubah = false;
+          tulisLokal({ ...badan, menunggu: false, t: Date.now() });
+          tawarkan(lain);
+        }
       } else if (r.status === 401) {
         masukLagi.hidden = false;
         status("Belum tersimpan");

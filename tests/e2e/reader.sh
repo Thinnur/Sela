@@ -31,7 +31,7 @@ echo "4. selesai: db=$(q 'select status from chapter_reads where user_id=1 and c
 pw screenshot --filename=reader-390-akhir.png
 
 echo "5. host request: $(timeout 60 playwright-cli -s=e2e requests 2>/dev/null | grep -oE 'https?://[^/ ]+' | sort -u | tr '\n' ' ')"
-echo "   galat konsol: $(timeout 60 playwright-cli -s=e2e console error 2>/dev/null | grep -c -iE 'error|refused|violat') baris"
+echo "   konsol: $(timeout 60 playwright-cli -s=e2e console 2>/dev/null | grep -oE 'Errors: [0-9]+')"
 
 REV=$(python3 -I -c "import sqlite3,sys; print(sqlite3.connect(sys.argv[1]).execute('select rev from reading_progress where user_id=1 and series_id=1').fetchone()[0])" "$DB")
 ev "fetch('/api/progres',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({series_id:1,chapter_id:4,indeks:2,fraksi:0.1,rev:$REV})}).then(r=>r.status)" >/dev/null

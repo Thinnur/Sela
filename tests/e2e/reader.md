@@ -8,7 +8,7 @@ uv run python -m sela.contoh
 uv run uvicorn sela.main:app --host 127.0.0.1 --port 8095
 ```
 
-## Hasil 17 November 2026
+## Hasil 17–18 November 2026
 
 | Langkah | Diharapkan | Hasil |
 |---|---|---|
@@ -20,6 +20,7 @@ uv run uvicorn sela.main:app --host 127.0.0.1 --port 8095
 | 6. Perangkat lain menyimpan, tab ini terlihat lagi | Muncul tawaran "Lanjut dari sana" | tampil ✅ |
 | 7. Cookie dihapus lalu menggulir | Muncul tautan "Masuk lagi", posisi tersimpan di localStorage | tampil, `menunggu: true` ✅ |
 | 7b. Masuk lagi lalu buka chapter itu | Posisi lokal terkirim ke server | `(5, 1)` ✅ |
+| 9. Respons 409 sebelum menggulir, lalu tab ditutup (`konflik-pagehide.sh`) | Posisi dari perangkat lain tidak tertimpa | sebelum perbaikan tertimpa jadi `(6, 8)`, sesudah perbaikan tetap `(3, 8)` ✅ |
 | 8. Pilih latar Kertas, lalu muat ulang | Kelas `latar-kertas` bertahan | ✅ |
 
 Langkah 6 disimulasikan dengan POST dari konteks halaman dan event `visibilitychange`, bukan dengan dua perangkat sungguhan.

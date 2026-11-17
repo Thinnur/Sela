@@ -1,0 +1,51 @@
+- generic [active] [ref=f3e1]:
+  - banner [ref=f3e2]:
+    - link "Kembali ke detail judul" [ref=f3e3] [cursor=pointer]:
+      - /url: /judul/1
+    - button "Money Keeps Piling Up No Matter How Much I Spend Chapter 5" [ref=f3e6] [cursor=pointer]:
+      - generic [ref=f3e7]: Money Keeps Piling Up No Matter How Much I Spend
+      - generic [ref=f3e8]: Chapter 5
+    - button "Daftar chapter" [ref=f3e11] [cursor=pointer]
+  - main [ref=f3e14]:
+    - generic [ref=f3e15]:
+      - img "Halaman 1" [ref=f3e16]
+      - img "Halaman 2" [ref=f3e17]
+      - img "Halaman 3" [ref=f3e18]
+      - img "Halaman 4" [ref=f3e19]
+    - region "Akhir chapter" [ref=f3e20]:
+      - generic [ref=f3e21]:
+        - generic [ref=f3e22]:
+          - generic [ref=f3e23]: Berikutnya
+          - generic [ref=f3e24]: Chapter 6
+        - link "Lanjut chapter 6" [ref=f3e25] [cursor=pointer]:
+          - /url: /baca/6
+      - generic [ref=f3e28]:
+        - generic [ref=f3e29]:
+          - generic [ref=f3e30]: Lompat ke chapter
+          - button "Semua chapter" [ref=f3e31] [cursor=pointer]
+        - generic [ref=f3e32]:
+          - link "3" [ref=f3e33] [cursor=pointer]:
+            - /url: /baca/3
+          - link "4 belum dibaca" [ref=f3e37] [cursor=pointer]:
+            - /url: /baca/4
+            - generic [ref=f3e38]: "4"
+            - generic "belum dibaca" [ref=f3e39]
+          - link "6 belum dibaca" [ref=f3e40] [cursor=pointer]:
+            - /url: /baca/6
+            - generic [ref=f3e41]: "6"
+            - generic "belum dibaca" [ref=f3e42]
+          - generic "Belum siap" [ref=f3e43]: "7"
+          - generic "Belum siap" [ref=f3e47]: "8"
+      - link "Kembali ke detail judul" [ref=f3e51] [cursor=pointer]:
+        - /url: /judul/1
+  - contentinfo [ref=f3e52]:
+    - generic [ref=f3e53]:
+      - link "Chapter sebelumnya" [ref=f3e54] [cursor=pointer]:
+        - /url: /baca/4
+      - slider "Pindah ke gambar" [ref=f3e57]: "0"
+      - generic [ref=f3e58]: 11%
+      - link "Chapter berikutnya" [ref=f3e59] [cursor=pointer]:
+        - /url: /baca/6
+    - generic [ref=f3e62]:
+      - generic [ref=f3e63]: Posisi tersimpan
+      - button "Pengaturan baca" [ref=f3e67] [cursor=pointer]

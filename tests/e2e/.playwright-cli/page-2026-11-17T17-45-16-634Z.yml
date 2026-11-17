@@ -1,0 +1,59 @@
+- generic [ref=f5e1]:
+  - banner [ref=f5e2]:
+    - link "Kembali ke detail judul" [ref=f5e3] [cursor=pointer]:
+      - /url: /judul/1
+    - button "Money Keeps Piling Up No Matter How Much I Spend Chapter 5" [ref=f5e6] [cursor=pointer]:
+      - generic [ref=f5e7]: Money Keeps Piling Up No Matter How Much I Spend
+      - generic [ref=f5e8]: Chapter 5
+    - button "Daftar chapter" [ref=f5e11] [cursor=pointer]
+  - main [ref=f5e14]:
+    - generic [ref=f5e15]:
+      - img "Halaman 1" [ref=f5e16]
+      - img "Halaman 2" [ref=f5e17]
+      - img "Halaman 3" [ref=f5e18]
+      - img "Halaman 4" [ref=f5e19]
+    - region "Akhir chapter" [ref=f5e20]:
+      - generic [ref=f5e21]:
+        - generic [ref=f5e22]:
+          - generic [ref=f5e23]: Berikutnya
+          - generic [ref=f5e24]: Chapter 6
+        - link "Lanjut chapter 6" [ref=f5e25] [cursor=pointer]:
+          - /url: /baca/6
+      - generic [ref=f5e28]:
+        - generic [ref=f5e29]:
+          - generic [ref=f5e30]: Lompat ke chapter
+          - button "Semua chapter" [ref=f5e31] [cursor=pointer]
+        - generic [ref=f5e32]:
+          - link "3" [ref=f5e33] [cursor=pointer]:
+            - /url: /baca/3
+          - link "4 belum dibaca" [ref=f5e37] [cursor=pointer]:
+            - /url: /baca/4
+            - generic [ref=f5e38]: "4"
+            - generic "belum dibaca" [ref=f5e39]
+          - link "6 belum dibaca" [ref=f5e40] [cursor=pointer]:
+            - /url: /baca/6
+            - generic [ref=f5e41]: "6"
+            - generic "belum dibaca" [ref=f5e42]
+          - generic "Belum siap" [ref=f5e43]: "7"
+          - generic "Belum siap" [ref=f5e47]: "8"
+      - link "Kembali ke detail judul" [ref=f5e51] [cursor=pointer]:
+        - /url: /judul/1
+  - contentinfo [ref=f5e52]:
+    - generic [ref=f5e53]:
+      - link "Chapter sebelumnya" [ref=f5e54] [cursor=pointer]:
+        - /url: /baca/4
+      - slider "Pindah ke gambar" [ref=f5e57]: "1"
+      - generic [ref=f5e58]: 48%
+      - link "Chapter berikutnya" [ref=f5e59] [cursor=pointer]:
+        - /url: /baca/6
+    - generic [ref=f5e62]:
+      - generic [ref=f5e63]: Posisi tersimpan
+      - button "Pengaturan baca" [ref=f5e67] [cursor=pointer]
+  - dialog [ref=f5e70]:
+    - heading "Pengaturan baca" [level=2] [ref=f5e72]
+    - paragraph [ref=f5e73]: Latar
+    - group "Latar" [ref=f5e74]:
+      - button "Gelap" [ref=f5e75] [cursor=pointer]
+      - button "Kertas" [active] [pressed] [ref=f5e78] [cursor=pointer]
+    - paragraph [ref=f5e81]: Disimpan untuk akun Fathin, ikut ke semua perangkatmu
+    - button "Tutup" [ref=f5e84] [cursor=pointer]

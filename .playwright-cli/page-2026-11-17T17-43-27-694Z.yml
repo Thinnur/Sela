@@ -1,0 +1,105 @@
+- generic [active] [ref=e1]:
+  - link "Langsung ke isi" [ref=e2] [cursor=pointer]:
+    - /url: "#utama"
+  - generic [ref=e3]:
+    - navigation "Navigasi utama" [ref=e4]:
+      - link "Akun kamu" [ref=e5] [cursor=pointer]:
+        - /url: /akun
+        - text: F
+      - link "Beranda" [ref=e6] [cursor=pointer]:
+        - /url: /
+      - link "Rak" [ref=e9] [cursor=pointer]:
+        - /url: /rak
+      - link "Sedang dibaca" [ref=e12] [cursor=pointer]:
+        - /url: /rak?f=dibaca
+      - link "Aktivitas dan penyimpanan" [ref=e15] [cursor=pointer]:
+        - /url: /aktivitas
+      - button "cek update" [ref=e18] [cursor=pointer]
+    - main [ref=e23]:
+      - generic [ref=e24]:
+        - search [ref=e25]:
+          - textbox "Cari di rak" [ref=e28]
+        - button "Tambah link" [ref=e29] [cursor=pointer]
+        - link "Aktivitas" [ref=e33] [cursor=pointer]:
+          - /url: /aktivitas
+          - generic [ref=e36]: "21"
+      - region "Lanjut baca" [ref=e37]:
+        - generic [ref=e44]:
+          - paragraph [ref=e45]: Lanjut baca punyamu
+          - paragraph [ref=e46]: Money Keeps Piling Up No Matter How Much I Spend
+          - paragraph [ref=e47]: Chapter 3 dari 8
+          - progressbar "Posisi baca 5%" [ref=e48]: 5%
+          - link "Lanjutkan" [ref=e49] [cursor=pointer]:
+            - /url: /baca/3
+        - generic [ref=e52]:
+          - generic [ref=e53]: 27 dari 29 siapmenunggu antrean
+          - generic [ref=e57]: Dicek 3 jam laluotomatis tiap 6 jam
+          - generic [ref=e61]: 1 MB di Drivetersimpan aman
+      - navigation "Saring rak" [ref=e65]:
+        - link "Semua" [ref=e66] [cursor=pointer]:
+          - /url: /rak
+        - link "Dibaca" [ref=e71] [cursor=pointer]:
+          - /url: /rak?f=dibaca
+        - link "Baru 21" [ref=e74] [cursor=pointer]:
+          - /url: /rak?f=baru
+        - link "Manhwa" [ref=e77] [cursor=pointer]:
+          - /url: /rak?f=manhwa
+        - link "Manga" [ref=e80] [cursor=pointer]:
+          - /url: /rak?f=manga
+        - link "Manhua" [ref=e83] [cursor=pointer]:
+          - /url: /rak?f=manhua
+        - link "Selesai" [ref=e86] [cursor=pointer]:
+          - /url: /rak?f=selesai
+      - region [ref=e89]:
+        - generic [ref=e90]:
+          - heading "Rak bersama" [level=2] [ref=e91]
+          - link "Lihat semua" [ref=e92] [cursor=pointer]:
+            - /url: /rak
+        - generic [ref=e93]:
+          - link "Sedang kamu baca Money Keeps Piling Up No Matter How Much I Spend 8 ch" [ref=e94] [cursor=pointer]:
+            - /url: /judul/1
+            - generic "Sedang kamu baca" [ref=e96]
+            - generic [ref=e97]: Money Keeps Piling Up No Matter How Much I Spend
+            - generic [ref=e98]: 8 ch
+          - link "Sedang kamu baca Kafe Ujung Gang 4 ch, 4 baru" [ref=e99] [cursor=pointer]:
+            - /url: /judul/3
+            - generic "Sedang kamu baca" [ref=e101]
+            - generic [ref=e102]: Kafe Ujung Gang
+            - generic [ref=e103]: 4 ch, 4 baru
+          - link "Pedang Senja 6 ch, 6 baru" [ref=e104] [cursor=pointer]:
+            - /url: /judul/2
+            - generic [ref=e106]: Pedang Senja
+            - generic [ref=e107]: 6 ch, 6 baru
+          - link "Menara Lantai 99 5 ch, 5 baru" [ref=e108] [cursor=pointer]:
+            - /url: /judul/4
+            - generic [ref=e110]: Menara Lantai 99
+            - generic [ref=e111]: 5 ch, 5 baru
+          - link "Musim Semi Kedua 3 ch, 3 baru" [ref=e112] [cursor=pointer]:
+            - /url: /judul/5
+            - generic [ref=e114]: Musim Semi Kedua
+            - generic [ref=e115]: 3 ch, 3 baru
+          - link "Bulan di Atap 3 ch, 3 baru" [ref=e116] [cursor=pointer]:
+            - /url: /judul/6
+            - generic [ref=e118]: Bulan di Atap
+            - generic [ref=e119]: 3 ch, 3 baru
+    - complementary "Aktivitas" [ref=e120]:
+      - generic [ref=e121]:
+        - heading "Aktivitas" [level=2] [ref=e122]
+        - link "Lihat semua aktivitas" [ref=e123] [cursor=pointer]:
+          - /url: /aktivitas
+      - link [ref=e126] [cursor=pointer]:
+        - /url: /aktivitas
+        - generic [ref=e128]: Sumber sehatKomiku, cadangan KomikIndo
+      - list [ref=e131]:
+        - listitem [ref=e132]:
+          - text: Chapter 6 siap dibaca
+          - generic [ref=e133]: 1 jam lalu
+        - listitem [ref=e134]:
+          - text: Chapter 8 terbit di Komiku
+          - generic [ref=e135]: 1 jam lalu
+        - listitem [ref=e136]:
+          - text: Putri menambahkan Kafe Ujung Gang
+          - generic [ref=e137]: 1 jam lalu
+      - generic [ref=e138]:
+        - textbox "Tempel link judul" [ref=e139]
+        - button "Tambah" [ref=e140] [cursor=pointer]
