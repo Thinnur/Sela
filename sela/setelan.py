@@ -21,6 +21,8 @@ class Setelan:
     jitter_cek: int = 1800
     cooldown_cek_manual: int = 600
     dev_login: bool = False
+    google_client_id: str = ""
+    google_client_secret: str = ""
 
     @property
     def dir_data(self) -> Path:
@@ -55,4 +57,6 @@ def muat_setelan(env: Mapping[str, str]) -> Setelan:
         session_secret=env["SELA_SESSION_SECRET"],
         chapter_paralel=min(4, max(1, int(env.get("SELA_CHAPTER_PARALEL", "3")))),
         dev_login=env.get("SELA_DEV_LOGIN") == "1",
+        google_client_id=env.get("SELA_GOOGLE_CLIENT_ID", ""),
+        google_client_secret=env.get("SELA_GOOGLE_CLIENT_SECRET", ""),
     )
