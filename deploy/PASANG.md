@@ -4,13 +4,13 @@ Setiap langkah di bawah dijalankan hanya setelah Fathin menyetujuinya. Langkah-l
 
 ## 0. Yang perlu disiapkan Fathin
 
-1. **Subdomain**, misalnya `sela.akzara.id`.
+1. **Subdomain:** `sela.akzara.id` (dipilih Fathin, 17 Nov 2026). Belum ada di DNS; dibuat lewat route Cloudflare Tunnel di langkah 5.
 2. **Project Google Cloud baru khusus Sela.** Jangan pakai project Hermes atau rclone.
    - OAuth consent screen: External, lalu ubah status ke **In production**. Kalau masih Testing, refresh token Drive kedaluwarsa setelah 7 hari.
    - Scope: `openid`, `email`, `profile`, `https://www.googleapis.com/auth/drive.file`.
    - Buat OAuth client berjenis **Web application**, dengan redirect URI:
-     - `https://<subdomain>/auth/callback`
-     - `https://<subdomain>/akun/drive/callback`
+     - `https://sela.akzara.id/auth/callback`
+     - `https://sela.akzara.id/akun/drive/callback`
 3. **Dua email Google** yang boleh masuk. Email Fathin menjadi admin.
 
 ## 1. User dan folder
@@ -38,7 +38,7 @@ Buat `/srv/sela/secrets/sela.env` dengan mode 600 dan pemilik `sela`:
 SELA_ROOT=/srv/sela
 SELA_ALLOWED_EMAILS=<email-fathin>,<email-putri>
 SELA_ADMIN_EMAIL=<email-fathin>
-SELA_BASE_URL=https://<subdomain>
+SELA_BASE_URL=https://sela.akzara.id
 SELA_SESSION_SECRET=<hasil: python3 -c "import secrets; print(secrets.token_urlsafe(48))">
 SELA_GOOGLE_CLIENT_ID=<client id>
 SELA_GOOGLE_CLIENT_SECRET=<client secret>
@@ -57,7 +57,7 @@ systemctl show sela -p MemoryMax                                        # harus 
 
 ## 5. Cloudflare Tunnel (Fathin, lewat dashboard)
 
-Tambahkan public hostname `<subdomain>` yang mengarah ke `http://127.0.0.1:8095`. Jangan pasang aturan cache untuk hostname ini.
+Tambahkan public hostname `sela.akzara.id` yang mengarah ke `http://127.0.0.1:8095`. Jangan pasang aturan cache untuk hostname ini.
 
 ## 6. Sambungkan Drive
 

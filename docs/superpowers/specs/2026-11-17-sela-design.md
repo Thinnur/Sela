@@ -352,7 +352,7 @@ Drive:
   - Batas sumber daya: `MemoryMax=512M`, `CPUQuota=100%`, `Nice=10`, `IOSchedulingClass=idle`. Batas memori dibuat lebih longgar karena beberapa chapter diproses bersamaan.
   - Pengamanan: `NoNewPrivileges=yes`, `ProtectSystem=strict`, `ProtectHome=yes`, `PrivateTmp=yes`, dan `ReadWritePaths=/srv/sela/data /srv/sela/cache /srv/sela/tmp`.
   - Proses mendengarkan di `127.0.0.1:8095`.
-- Fathin menambahkan route Cloudflare Tunnel dari dashboard: subdomain ke `http://127.0.0.1:8095`.
+- Fathin menambahkan route Cloudflare Tunnel dari dashboard: `sela.akzara.id` ke `http://127.0.0.1:8095`.
 - Backup database Sela **[Claude]**:
   - Setiap hari dibuat salinan SQLite yang konsisten, lalu diunggah ke `Sela/_db/` di Drive. Simpan 14 salinan terakhir.
   - Backup ini memakai token Sela sendiri dan tidak menyentuh sistem backup VPS.
@@ -392,7 +392,7 @@ Kriteria 1 sampai 20 di PRD bagian 13 tetap berlaku. Kriteria 21 sampai 23 gugur
 
 Butir di bawah ini perlu jawaban Fathin sebelum login dan deploy dikerjakan. Penyusunan rencana dan kode inti (adapter, unduhan, CBZ, reader) tidak perlu menunggu.
 
-1. **Subdomain.** Usulannya `sela.akzara.id`. Dibutuhkan untuk redirect URI OAuth dan route tunnel.
+1. ~~Subdomain~~ **Sudah diputuskan:** `sela.akzara.id` **[Fathin, 17 Nov 2026]**. Dipakai untuk redirect URI OAuth dan route tunnel.
 2. **Project Google Cloud baru untuk Sela.** Langkahnya:
    1. Buat project-nya.
    2. Ubah consent screen ke status *In production*.
