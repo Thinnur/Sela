@@ -104,6 +104,7 @@ def detail(conn: sqlite3.Connection, uid: int, series_id: int, f: str | None = N
     sumber = [dict(x) | {"situs": NAMA_SITUS[x["adapter"]], "dicek": waktu_relatif(x["cek_sukses_terakhir"])}
               for x in conn.execute("select * from series_sources where series_id=? order by peran desc", (series_id,))]
     cadangan = next((x for x in sumber if x["peran"] == "cadangan"), None)
+    utama_ditolak = any(x["peran"] == "utama" and x["jenis_error"] == "ditolak" for x in sumber)
     baris = []
     for c in conn.execute(
             "select c.*, r.status baca, "
@@ -119,6 +120,7 @@ def detail(conn: sqlite3.Connection, uid: int, series_id: int, f: str | None = N
         d["sedang"] = posisi is not None and posisi.chapter_id == c["id"]
         d["persen"] = _persen(conn, c["id"], posisi.indeks, posisi.fraksi) if d["sedang"] else 0
         d["dari_cadangan"] = cadangan is not None and c["dari"] == cadangan["adapter"]
+        d["sumber_ditolak"] = utama_ditolak and c["status"] in ("antre", "menunggu_ulang", "menunggu_ruang")
         d["persen_unduh"] = 0
         if c["status"] == "mengunduh":
             j = conn.execute("select checkpoint from jobs where target=? and status='berjalan'", (c["id"],)).fetchone()

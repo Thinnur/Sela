@@ -99,3 +99,15 @@ def test_masuk_lalu_keluar(client_masuk):
     assert client_masuk.get("/", follow_redirects=False).status_code == 200
     assert client_masuk.post("/keluar", follow_redirects=False).status_code == 303
     assert client_masuk.get("/", follow_redirects=False).status_code == 303
+
+
+def test_email_dihapus_dari_allowlist_mencabut_akses(setelan, path_db):
+    c = db.buka(path_db)
+    assert izinkan_login(c, setelan, {"sub": "S2", "email": "b@x.com", "email_verified": True}) == 2
+    tanpa_b = replace(setelan, allowed_emails=frozenset({"a@x.com"}))
+    assert izinkan_login(c, tanpa_b, {"sub": "S2", "email": "b@x.com", "email_verified": True}) is None
+    c.close()
+    k = TestClient(app_uji(tanpa_b, path_db, dev_login=True), base_url=BASE, client=("127.0.0.1", 1))
+    k.get("/dev/masuk/2")
+    assert k.get("/", follow_redirects=False).status_code == 303
+    assert k.get("/api/aktivitas").status_code == 401

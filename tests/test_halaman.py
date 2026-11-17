@@ -114,3 +114,13 @@ def test_patuh_csp_tanpa_inline(app, url):
     assert not re.search(r"\sstyle=", h), "atribut style inline diblokir CSP"
     assert not re.search(r"<script(?![^>]*\bsrc=)[^>]*>", h), "script inline diblokir CSP"
     assert not re.search(r"\son[a-z]+=", h), "handler inline diblokir CSP"
+
+
+def test_sumber_ditolak_tawarkan_cadangan(app, tmp_path):
+    c = app.state.l.buka_db()
+    c.execute("update series_sources set jenis_error='ditolak', pesan_error='akses ditolak (HTTP 403)' where id=1")
+    c.execute("update chapters set status='antre' where id=6")
+    c.execute("insert into chapter_sources values(6, 2, 'https://komikindo.ch/m-5/')")
+    c.close()
+    h = html(app, "/judul/1")
+    assert 'data-url="/api/chapter/6/ambil-cadangan"' in h and 'data-url="/api/sumber/1/coba-lagi"' in h

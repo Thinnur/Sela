@@ -57,8 +57,10 @@ async def cek_sumber(conn: sqlite3.Connection, p: PengambilAman, sumber_id: int,
                     "select 1 from archives where chapter_id=?", (cid,)).fetchone():
                 conn.execute("update chapters set status='antre', pesan_status=null where id=?", (cid,))
                 buat_job_unduh(conn, cid, sumber_id, jam)
-        conn.execute("update series_sources set cek_sukses_terakhir=?, jenis_error=null, pesan_error=null where id=?",
-                     (jam, sumber_id))
+        # 'ditolak' hanya dibersihkan lewat Coba lagi (spec bagian 9), bukan oleh cek yang kebetulan berhasil
+        conn.execute("update series_sources set cek_sukses_terakhir=?, "
+                     "jenis_error=case when jenis_error='ditolak' then jenis_error end, "
+                     "pesan_error=case when jenis_error='ditolak' then pesan_error end where id=?", (jam, sumber_id))
     return HasilCek(baru, None)
 
 
@@ -70,7 +72,10 @@ async def detak(conn: sqlite3.Connection, p: PengambilAman, s: Setelan, jam: flo
                                (jam,)).fetchall()
     for utama in jatuh_tempo:
         diperiksa = [utama]
-        hasil = await cek_sumber(conn, p, utama["id"], jam)
+        if utama["jenis_error"] == "ditolak":
+            hasil = HasilCek(0, "ditolak")  # tidak diminta lagi sampai ada yang menekan Coba lagi
+        else:
+            hasil = await cek_sumber(conn, p, utama["id"], jam)
         if hasil.anomali is None:
             sehat.add(utama["adapter"])
         else:

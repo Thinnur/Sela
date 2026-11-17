@@ -91,6 +91,9 @@
           </span>
         {% else %}<span class="tag tag-abu">{{ ikon('clock') }}{{ c.status_teks }}</span>
           {% if c.pesan_status %}<span class="kecil lembut blok">{{ c.pesan_status }}</span>{% endif %}
+          {% if c.sumber_ditolak %}<span class="kecil merah blok">Sumber utama menolak akses</span>
+            {% if c.ada_cadangan %}<span class="aksi-kecil"><button class="tautan kecil" type="button" data-aksi="post" data-url="/api/chapter/{{ c.id }}/ambil-cadangan" data-pesan="{{ c.label }} diambil dari {{ d.cadangan.situs }}">Ambil dari {{ d.cadangan.situs }}</button></span>{% endif %}
+          {% endif %}
         {% endif %}
       </div>
       <div class="baris-baca kecil">

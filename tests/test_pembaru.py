@@ -191,3 +191,26 @@ def test_cek_url_ganda_tidak_membuat_chapter_tanpa_sumber(conn, judul, sumber):
     sumber.halaman[URL_KOMIKU] = str(s)
     asyncio.run(pembaru.cek_sumber(conn, sumber.pengambil(), id_sumber(conn, "utama"), 2000.0))
     assert hitung(conn, "chapters c where not exists(select 1 from chapter_sources cs where cs.chapter_id=c.id)") == 0
+
+
+def test_sumber_ditolak_tidak_dicek_dan_tidak_dipulihkan_otomatis(conn, setelan, judul, sumber):
+    utama = id_sumber(conn, "utama")
+    conn.execute("update series_sources set jenis_error='ditolak' where id=?", (utama,))
+    diminta = []
+    asli = sumber.pengambil
+
+    def pengambil_hitung():
+        p = asli()
+        ambil = p.ambil
+
+        async def ambil_catat(url, **kw):
+            diminta.append(url)
+            return await ambil(url, **kw)
+
+        p.ambil = ambil_catat
+        return p
+
+    sehat = asyncio.run(pembaru.detak(conn, pengambil_hitung(), setelan, 1_000_000.0))
+    assert URL_KOMIKU not in diminta and URL_KI in diminta and sehat == {"komikindo"}
+    asyncio.run(pembaru.cek_sumber(conn, sumber.pengambil(), utama, 2_000_000.0))
+    assert conn.execute("select jenis_error from series_sources where id=?", (utama,)).fetchone()[0] == "ditolak"

@@ -21,7 +21,9 @@ def izinkan_login(conn: sqlite3.Connection, s: Setelan, info: dict) -> int | Non
     if info.get("email_verified") is not True or not sub:
         return None
     nama = (info.get("name") or "").strip()
-    r = conn.execute("select id from users where google_sub=?", (sub,)).fetchone()
+    r = conn.execute("select id, email from users where google_sub=?", (sub,)).fetchone()
+    if r is not None and r["email"] not in s.allowed_emails:
+        return None  # email asal akun ini sudah dikeluarkan dari allowlist
     if r is None:
         if email not in s.allowed_emails:
             return None
@@ -40,9 +42,12 @@ def _pengguna(request: Request) -> sqlite3.Row | None:
         return None
     conn = request.app.state.l.buka_db()
     try:
-        return conn.execute("select * from users where id=?", (uid,)).fetchone()
+        u = conn.execute("select * from users where id=?", (uid,)).fetchone()
     finally:
         conn.close()
+    if u is None or u["email"] not in request.app.state.s.allowed_emails:
+        return None  # akun dihapus dari allowlist: sesi lama ikut tidak berlaku
+    return u
 
 
 def pengguna_html(request: Request) -> sqlite3.Row:
