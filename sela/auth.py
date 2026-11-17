@@ -4,8 +4,11 @@ from authlib.integrations.starlette_client import OAuth, OAuthError
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse, Response
 
+from sela import db
+from sela.drive import TokenDrive
 from sela.setelan import Setelan
 
+SCOPE_DRIVE = "https://www.googleapis.com/auth/drive.file"
 PUBLIK = ("/masuk", "/masuk/google", "/auth/callback")
 PUBLIK_AWALAN = ("/static/", "/dev/masuk/")
 LOOPBACK = ("127.0.0.1", "::1")
@@ -108,6 +111,36 @@ def pasang_rute_auth(app: FastAPI, s: Setelan) -> None:
     def keluar(request: Request):
         request.session.clear()
         return RedirectResponse("/masuk", status_code=303)
+
+    if s.google_client_id:
+        oauth.register("google_drive", client_id=s.google_client_id, client_secret=s.google_client_secret,
+                       server_metadata_url=GOOGLE_META, client_kwargs={"scope": "openid email " + SCOPE_DRIVE})
+
+    def admin_drive(request: Request) -> None:
+        wajib_admin(pengguna_html(request))
+        if not s.google_client_id:
+            raise HTTPException(503, detail="OAuth Google belum dikonfigurasi")
+
+    @app.get("/akun/drive")
+    async def sambung_drive(request: Request):
+        admin_drive(request)
+        return await oauth.google_drive.authorize_redirect(request, f"{s.base_url}/akun/drive/callback",
+                                                           access_type="offline", prompt="consent")
+
+    @app.get("/akun/drive/callback")
+    async def sambung_drive_callback(request: Request):
+        admin_drive(request)
+        try:
+            token = await oauth.google_drive.authorize_access_token(request)
+        except OAuthError:
+            return RedirectResponse("/akun", status_code=303)
+        TokenDrive(s.dir_secrets / "drive.json", s.google_client_id, s.google_client_secret).simpan(token)
+        conn = app.state.l.buka_db()
+        try:
+            db.kv_set(conn, "drive_status", None)
+        finally:
+            conn.close()
+        return RedirectResponse("/akun", status_code=303)
 
     @app.get("/dev/masuk/{user_id}")
     def dev_masuk(request: Request, user_id: int):

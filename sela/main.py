@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 import httpx
 
 from sela import db, pembaru
+from sela.backup import backup_db, jadwal_harian
 from sela.cache import CacheChapter
 from sela.drive import DriveHttp, DriveLokal, TokenDrive
 from sela.fetch import PengambilAman
@@ -58,9 +59,11 @@ def buat(env=os.environ):
     @asynccontextmanager
     async def lifespan(_app):
         worker.pulihkan()
-        tugas = asyncio.create_task(worker.jalan())
+        tugas = [asyncio.create_task(worker.jalan()),
+                 asyncio.create_task(jadwal_harian(lambda: backup_db(path_db, drive, s.dir_tmp, time.time())))]
         yield
-        tugas.cancel()
+        for t in tugas:
+            t.cancel()
 
     app.router.lifespan_context = lifespan
     return app
