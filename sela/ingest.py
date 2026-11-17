@@ -85,22 +85,29 @@ def buat_job_unduh(conn: sqlite3.Connection, chapter_id: int, sumber_id: int, ja
     return conn.execute("select id from jobs where kunci_idem=?", (f"unduh:{chapter_id}:{sumber_id}",)).fetchone()[0]
 
 
+def pastikan_chapter(conn: sqlite3.Connection, series_id: int, sumber_id: int, ln: str, c: ChapterRef,
+                     status: str) -> tuple[int, bool]:
+    """Cari chapter berlabel ln atau buat baru dengan status ini, lalu tautkan ke sumber. Mengembalikan (id, baru_dibuat)."""
+    r = conn.execute("select id from chapters where series_id=? and label_normal=?", (series_id, ln)).fetchone()
+    dibuat = r is None
+    if dibuat:
+        try:
+            kunci = float(ln)
+        except ValueError:
+            kunci = conn.execute("select coalesce(max(kunci_urut), 0) + 0.001 from chapters where series_id=?",
+                                 (series_id,)).fetchone()[0]
+        cid = conn.execute("insert into chapters(series_id, label, label_normal, kunci_urut, terbit, status) values(?,?,?,?,?,?)",
+                           (series_id, c.label, ln, kunci, c.terbit, status)).lastrowid
+    else:
+        cid = r[0]
+    conn.execute("insert or ignore into chapter_sources(chapter_id, sumber_id, url) values(?,?,?)", (cid, sumber_id, c.url))
+    return cid, dibuat
+
+
 def sisipkan_chapter_cadangan(conn: sqlite3.Connection, series_id: int, sumber_id: int, chapters: list[ChapterRef]) -> list[int]:
     """Tautkan chapter cadangan ke chapter yang labelnya sama; label baru jadi 'hanya_cadangan'. Mengembalikan id chapter baru."""
-    peta = {r["label_normal"]: r["id"] for r in conn.execute("select id, label_normal from chapters where series_id=?", (series_id,))}
-    kunci_maks = conn.execute("select coalesce(max(kunci_urut), 0) from chapters where series_id=?", (series_id,)).fetchone()[0]
-    baru = []
-    for ln, c in _unik_per_label(chapters):
-        if ln not in peta:
-            try:
-                kunci = float(ln)
-            except ValueError:
-                kunci = kunci_maks = kunci_maks + 0.001
-            peta[ln] = conn.execute("insert into chapters(series_id, label, label_normal, kunci_urut, terbit, status) "
-                                    "values(?,?,?,?,?,'hanya_cadangan')", (series_id, c.label, ln, kunci, c.terbit)).lastrowid
-            baru.append(peta[ln])
-        conn.execute("insert or ignore into chapter_sources(chapter_id, sumber_id, url) values(?,?,?)", (peta[ln], sumber_id, c.url))
-    return baru
+    return [cid for ln, c in _unik_per_label(chapters)
+            for cid, dibuat in [pastikan_chapter(conn, series_id, sumber_id, ln, c, "hanya_cadangan")] if dibuat]
 
 
 def tambahkan(conn: sqlite3.Connection, pv: Pratinjau, user_id: int, tautkan_cadangan: bool, jam: float,
