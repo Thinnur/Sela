@@ -1,0 +1,27 @@
+[Unit]
+Description=Sela, reader komik pribadi
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=sela
+Group=sela
+WorkingDirectory=/srv/sela/app
+EnvironmentFile=/srv/sela/secrets/sela.env
+ExecStart=/srv/sela/app/.venv/bin/uvicorn sela.main:app --host 127.0.0.1 --port 8095 --proxy-headers --forwarded-allow-ips 127.0.0.1
+Restart=on-failure
+RestartSec=5
+
+MemoryMax=512M
+CPUQuota=100%
+Nice=10
+IOSchedulingClass=idle
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/srv/sela/data /srv/sela/cache /srv/sela/tmp /srv/sela/secrets
+
+[Install]
+WantedBy=multi-user.target
