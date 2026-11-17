@@ -182,3 +182,12 @@ def test_ganti_sumber_lewati_chapter_yang_berjalan(conn, judul):
     pembaru.ganti_sumber_utama(conn, judul, cad)
     assert hitung(conn, "jobs where target=? and sumber_id=?", c1, cad) == 0
     assert hitung(conn, "jobs where target=? and status='berjalan'", c1) == 1
+
+
+def test_cek_url_ganda_tidak_membuat_chapter_tanpa_sumber(conn, judul, sumber):
+    s = BeautifulSoup(KOMIKU, "html.parser")
+    a = s.select("#Daftar_Chapter td.judulseries a")
+    a[0]["href"] = a[1]["href"] + "#komentar"  # chapter 27 menunjuk ke halaman chapter 26
+    sumber.halaman[URL_KOMIKU] = str(s)
+    asyncio.run(pembaru.cek_sumber(conn, sumber.pengambil(), id_sumber(conn, "utama"), 2000.0))
+    assert hitung(conn, "chapters c where not exists(select 1 from chapter_sources cs where cs.chapter_id=c.id)") == 0

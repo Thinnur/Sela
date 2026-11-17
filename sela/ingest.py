@@ -8,7 +8,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import urldefrag, urlsplit
 
 from sela import db
 from sela.adapters import ADAPTER, adapter_untuk
@@ -58,12 +58,15 @@ async def pratinjau(conn: sqlite3.Connection, p: PengambilAman, url: str) -> Pra
 
 
 def _unik_per_label(chapters: list[ChapterRef]) -> list[tuple[str, ChapterRef]]:
-    lihat, hasil = set(), []
+    """Satu entri per label dan per URL (tanpa #fragmen); entri pertama yang menang."""
+    label_ada, url_ada, hasil = set(), set(), []
     for c in chapters:
-        ln = normalisasi_label(c.label)
-        if ln not in lihat:
-            lihat.add(ln)
-            hasil.append((ln, c))
+        ln, url = normalisasi_label(c.label), urldefrag(c.url).url
+        if ln in label_ada or url in url_ada:
+            continue
+        label_ada.add(ln)
+        url_ada.add(url)
+        hasil.append((ln, ChapterRef(c.label, url, c.terbit)))
     return hasil
 
 

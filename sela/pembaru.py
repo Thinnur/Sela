@@ -35,6 +35,7 @@ async def cek_sumber(conn: sqlite3.Connection, p: PengambilAman, sumber_id: int,
         return _galat(conn, sumber_id, e.jenis, e.pesan)
     dikenal = {r[0] for r in conn.execute("select c.label_normal from chapter_sources cs join chapters c on c.id=cs.chapter_id "
                                          "where cs.sumber_id=?", (sumber_id,))}
+    url_dikenal = {r[0] for r in conn.execute("select url from chapter_sources where sumber_id=?", (sumber_id,))}
     daftar = _unik_per_label(judul.chapters)
     hilang = dikenal - {ln for ln, _ in daftar}
     if not daftar or len(hilang) > MAKS_HILANG:
@@ -45,7 +46,7 @@ async def cek_sumber(conn: sqlite3.Connection, p: PengambilAman, sumber_id: int,
     baru = 0
     with db.transaksi(conn):
         for ln, c in daftar:
-            if ln in dikenal:
+            if ln in dikenal or c.url in url_dikenal:
                 continue
             cid, dibuat = pastikan_chapter(conn, sid, sumber_id, ln, c, "hanya_cadangan" if cadangan else "antre")
             if dibuat:

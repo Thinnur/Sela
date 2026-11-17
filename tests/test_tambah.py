@@ -75,3 +75,13 @@ def test_daftar_ganda_jadi_satu(conn, pengguna):
 def test_simpan_sampul(tmp_path):
     nama = asyncio.run(simpan_sampul(pengambil_fixture(), "https://thumbnail.komiku.org/a.webp", tmp_path / "7"))
     assert nama == "7.webp" and (tmp_path / "7.webp").exists()
+
+
+def test_url_sama_label_beda_jadi_satu(conn, pengguna):
+    u = "https://komiku.org/x-chapter-5/"
+    pv = Pratinjau("komiku", "https://komiku.org/manga/x/",
+                   Judul("X", chapters=[ChapterRef("Chapter 5", u, None), ChapterRef("Chapter 6", u + "#komentar", None),
+                                        ChapterRef("Chapter 7", "https://komiku.org/x-chapter-7/#atas", None)]), None)
+    tambahkan(conn, pv, pengguna, False, 1.0)
+    assert hitung(conn, "chapters") == 2 and hitung(conn, "jobs") == 2
+    assert sorted(r[0] for r in conn.execute("select url from chapter_sources")) == [u, "https://komiku.org/x-chapter-7/"]
