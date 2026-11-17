@@ -1,2 +1,65 @@
-{% extends "dasar.html" %}
-{% block konten %}<main><h1 class="fd">Rak bersama</h1></main>{% endblock %}
+{% extends "kerangka.html" %}
+{% from "_makro.html" import ikon, sampul, kartu_rak %}
+{% block isi %}
+<header class="sapa">
+  <div><h1 class="fd">Hai, {{ nama }}</h1><p class="redup">{% if total_baru %}{{ total_baru }} chapter baru menunggu{% else %}Selamat membaca{% endif %}</p></div>
+  <a class="avatar" href="/akun" aria-label="Akun kamu">{{ nama[:1] | upper }}</a>
+</header>
+
+<div class="atas">
+  <form class="cari" action="/rak" role="search">{{ ikon('search') }}<input name="q" placeholder="Cari di rak" aria-label="Cari di rak"></form>
+  <button class="tombol tombol-utama buka-tambah" type="button">{{ ikon('link') }}<span class="teks-tambah">Tambah link</span></button>
+  <a class="bulat lonceng" href="/aktivitas" aria-label="Aktivitas">{{ ikon('bell') }}{% if total_baru %}<span class="lencana">{{ total_baru }}</span>{% endif %}</a>
+</div>
+
+{% if lanjut %}
+<section class="lanjut" aria-label="Lanjut baca">
+  <div class="lanjut-ilustrasi tone" aria-hidden="true"><span class="punggung p1"></span><span class="punggung p2"><span class="pita-kecil"></span></span><span class="punggung p3"></span><span class="punggung p4"></span></div>
+  <div class="lanjut-sampul">{{ sampul({'id': lanjut.series_id, 'sampul': lanjut.sampul}, true) }}</div>
+  <div class="lanjut-teks">
+    <p class="kecil lembut">Lanjut baca punyamu</p>
+    <p class="fd lanjut-judul">{{ lanjut.judul }}</p>
+    <p class="kecil lembut">{{ lanjut.label }} dari {{ lanjut.total }}</p>
+    <progress max="100" value="{{ lanjut.persen }}" aria-label="Posisi baca {{ lanjut.persen }}%">{{ lanjut.persen }}%</progress>
+    <a class="tombol tombol-utama kecil-tombol" href="/baca/{{ lanjut.chapter_id }}">{{ ikon('player-play') }}Lanjutkan</a>
+  </div>
+  <div class="lanjut-status">
+    <div class="status-mini">{{ ikon('download', 'teal') }}<span><b>{{ ring.siap }} dari {{ ring.total }} siap</b><br><span class="lembut">{{ 'sedang diunduh' if ring.proses else 'semua beres' if ring.siap == ring.total else 'menunggu antrean' }}</span></span></div>
+    <div class="status-mini">{{ ikon('refresh', 'lavender') }}<span><b>Dicek {{ ring.dicek }}</b><br><span class="lembut">otomatis tiap 6 jam</span></span></div>
+    <div class="status-mini">{{ ikon('cloud-check', 'navy') }}<span><b>{{ ring.drive_mb }} MB di Drive</b><br><span class="lembut">tersimpan aman</span></span></div>
+  </div>
+</section>
+{% elif rak and pertama %}
+<section class="lanjut lanjut-mulai" aria-label="Mulai baca">
+  <div class="lanjut-ilustrasi tone" aria-hidden="true"><span class="punggung p1"></span><span class="punggung p2"></span><span class="punggung p3"></span><span class="punggung p4"></span></div>
+  <div class="lanjut-teks">
+    <p class="kecil lembut">Belum ada yang kamu baca</p>
+    <p class="fd lanjut-judul">{{ pertama.judul }}</p>
+    <a class="tombol tombol-utama kecil-tombol" href="/baca/{{ pertama.chapter_id }}">{{ ikon('player-play') }}Mulai baca</a>
+  </div>
+</section>
+{% endif %}
+
+<nav class="chip-baris" aria-label="Saring rak">
+  <a class="chip aktif" href="/rak"><span class="mini-tumpuk"><span class="mini warna-0"></span><span class="mini warna-1"></span></span><span>Semua</span></a>
+  <a class="chip" href="/rak?f=dibaca"><span class="mini warna-3"></span><span>Dibaca</span></a>
+  <a class="chip" href="/rak?f=baru"><span class="mini warna-1"></span><span>Baru{% if total_baru %} {{ total_baru }}{% endif %}</span></a>
+  <a class="chip" href="/rak?f=manhwa"><span class="mini warna-2"></span><span>Manhwa</span></a>
+  <a class="chip" href="/rak?f=manga"><span class="mini warna-4"></span><span>Manga</span></a>
+  <a class="chip" href="/rak?f=manhua"><span class="mini warna-0"></span><span>Manhua</span></a>
+  <a class="chip" href="/rak?f=selesai"><span class="mini warna-hijau"></span><span>Selesai</span></a>
+</nav>
+
+<section class="rak-bagian" aria-labelledby="judul-rak">
+  <div class="bagian-kepala"><h2 id="judul-rak" class="fd">Rak bersama</h2><a class="pil-kecil" href="/rak">Lihat semua</a></div>
+  {% if rak %}
+  <div class="rak-grid rak-beranda">{% for d in rak[:10] %}{{ kartu_rak(d) }}{% endfor %}</div>
+  {% else %}
+  <div class="kosong">
+    <p class="fd">Mulai rak kalian</p>
+    <p class="redup">Tempel link halaman judul dari Komiku atau KomikIndo. Semua chapter-nya akan disimpan ke Drive.</p>
+    <button class="tombol tombol-utama buka-tambah" type="button">{{ ikon('link') }}Tambah link</button>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

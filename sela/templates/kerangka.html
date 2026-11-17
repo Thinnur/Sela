@@ -1,0 +1,30 @@
+{% extends "dasar.html" %}
+{% from "_makro.html" import ikon %}
+{% block konten %}
+<a class="lewati" href="#utama">Langsung ke isi</a>
+<div class="kerangka{% if panel %} ada-panel{% endif %}">
+  <nav class="rail" aria-label="Navigasi utama">
+    <a class="avatar" href="/akun" aria-label="Akun kamu">{{ (u.nama or u.email)[:1] | upper }}</a>
+    <a class="rail-ikon {% if aktif == 'beranda' %}aktif{% endif %}" href="/" aria-label="Beranda">{{ ikon('home') }}</a>
+    <a class="rail-ikon {% if aktif == 'rak' %}aktif{% endif %}" href="/rak" aria-label="Rak">{{ ikon('books') }}</a>
+    <a class="rail-ikon {% if aktif == 'riwayat' %}aktif{% endif %}" href="/rak?f=dibaca" aria-label="Sedang dibaca">{{ ikon('history') }}</a>
+    <a class="rail-ikon {% if aktif == 'aktivitas' %}aktif{% endif %}" href="/aktivitas" aria-label="Aktivitas dan penyimpanan">{{ ikon('cloud') }}</a>
+    <span class="rail-isi"></span>
+    <button class="rail-pil" type="button" data-aksi="post" data-url="/api/cek-semua" data-pesan="Semua judul dijadwalkan dicek">
+      <span class="rail-pil-ikon">{{ ikon('refresh') }}</span><span class="rail-pil-teks fd">cek update</span>
+    </button>
+  </nav>
+  <main class="utama" id="utama">{% block isi %}{% endblock %}</main>
+  {% if panel %}<aside class="panel" aria-label="Aktivitas">{% include "_panel.html" %}</aside>{% endif %}
+</div>
+<nav class="nav-bawah" aria-label="Navigasi">
+  <a href="/" class="{% if aktif == 'beranda' %}aktif{% endif %}" aria-label="Beranda">{{ ikon('home') }}</a>
+  <a href="/rak" class="{% if aktif == 'rak' %}aktif{% endif %}" aria-label="Rak">{{ ikon('books') }}</a>
+  <button class="nav-tambah buka-tambah" type="button" aria-label="Tambah link judul">{{ ikon('plus') }}</button>
+  <a href="/aktivitas" class="{% if aktif == 'aktivitas' %}aktif{% endif %}" aria-label="Aktivitas">{{ ikon('bell') }}</a>
+  <a href="/akun" class="{% if aktif == 'akun' %}aktif{% endif %}" aria-label="Akun">{{ ikon('user') }}</a>
+</nav>
+{% include "_tambah.html" %}
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+{% endblock %}
+{% block skrip %}<script src="/static/js/app.js" defer></script>{% endblock %}

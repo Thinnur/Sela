@@ -1,0 +1,18 @@
+{% from "_makro.html" import ikon %}
+<div class="panel-kepala"><h2 class="fd">Aktivitas</h2><a class="bulat" href="/aktivitas" aria-label="Lihat semua aktivitas">{{ ikon('adjustments-horizontal') }}</a></div>
+<a class="sumber-ringkas" href="/aktivitas">
+  <span class="titik {{ 'titik-merah' if sumber_bermasalah else 'titik-hijau' }}"></span>
+  <span><b>{{ 'Ada sumber bermasalah' if sumber_bermasalah else 'Sumber sehat' }}</b><br><span class="redup">Komiku, cadangan KomikIndo</span></span>
+  {{ ikon('chevron-right') }}
+</a>
+<ol class="balon-daftar" id="panel-balon" aria-live="polite">
+  {% for a in kejadian[:6] %}
+  <li class="balon {{ 'balon-kanan' if a.user_id else 'balon-kiri' }}">{{ a.teks }}<span class="balon-waktu">{{ a.waktu }}</span></li>
+  {% else %}
+  <li class="balon balon-kiri">Belum ada aktivitas. Tempel link judul untuk mulai.</li>
+  {% endfor %}
+</ol>
+<form class="panel-tempel" id="panel-tempel">
+  <input type="url" name="url" placeholder="Tempel link judul" aria-label="Tempel link judul">
+  <button class="bulat koral-isi" type="submit" aria-label="Tambah">{{ ikon('plus') }}</button>
+</form>

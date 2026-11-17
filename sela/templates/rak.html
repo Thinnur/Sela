@@ -1,0 +1,20 @@
+{% extends "kerangka.html" %}
+{% from "_makro.html" import ikon, kartu_rak %}
+{% block judul %}Rak · Sela{% endblock %}
+{% block isi %}
+<div class="atas">
+  <form class="cari" action="/rak" role="search">{{ ikon('search') }}<input name="q" value="{{ q or '' }}" placeholder="Cari di rak" aria-label="Cari di rak">{% if f %}<input type="hidden" name="f" value="{{ f }}">{% endif %}</form>
+  <button class="tombol tombol-utama buka-tambah" type="button">{{ ikon('link') }}<span class="teks-tambah">Tambah link</span></button>
+</div>
+<h1 class="fd judul-hal">Rak bersama</h1>
+<nav class="chip-baris pil-saja" aria-label="Saring rak">
+  {% for kode, nama in [(None, 'Semua'), ('dibaca', 'Dibaca'), ('baru', 'Baru'), ('manhwa', 'Manhwa'), ('manga', 'Manga'), ('manhua', 'Manhua'), ('selesai', 'Selesai')] %}
+  <a class="chip {% if f == kode %}aktif{% endif %}" href="/rak{% if kode %}?f={{ kode }}{% endif %}"{% if f == kode %} aria-current="page"{% endif %}><span>{{ nama }}</span></a>
+  {% endfor %}
+</nav>
+{% if rak %}
+<div class="rak-grid">{% for d in rak %}{{ kartu_rak(d) }}{% endfor %}</div>
+{% else %}
+<div class="kosong"><p class="fd">Tidak ada judul yang cocok</p><p class="redup">Coba kata lain, atau tambahkan judul baru lewat link.</p></div>
+{% endif %}
+{% endblock %}

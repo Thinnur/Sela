@@ -148,6 +148,11 @@ def pasang_api(app: FastAPI) -> None:
     def cek_manual(series_id: int, u=Depends(pengguna_api), conn=Depends(koneksi)):
         return {"diterima": pembaru.minta_cek_manual(conn, series_id, time.time(), s.cooldown_cek_manual)}
 
+    @r.post("/api/cek-semua", status_code=204)
+    def cek_semua(u=Depends(pengguna_api), conn=Depends(koneksi)):
+        for (sid,) in conn.execute("select id from series").fetchall():
+            pembaru.minta_cek_manual(conn, sid, time.time(), s.cooldown_cek_manual)
+
     @r.post("/api/sumber/{sumber_id}/coba-lagi", status_code=204)
     def sumber_coba_lagi(sumber_id: int, u=Depends(pengguna_api), conn=Depends(koneksi)):
         coba_lagi_sumber(conn, sumber_id)
@@ -170,7 +175,7 @@ def pasang_api(app: FastAPI) -> None:
     @r.get("/api/aktivitas")
     def aktivitas(u=Depends(pengguna_api), conn=Depends(koneksi)):
         kejadian = [dict(x) for x in conn.execute(
-            "select pada, jenis, teks, series_id, chapter_id from activity order by id desc limit 30")]
+            "select pada, jenis, teks, series_id, chapter_id, user_id from activity order by id desc limit 30")]
         berjalan = []
         for j in conn.execute("select j.checkpoint, c.id, c.label, c.status, s.judul from jobs j join chapters c on c.id=j.target "
                               "join series s on s.id=c.series_id where j.status='berjalan'"):

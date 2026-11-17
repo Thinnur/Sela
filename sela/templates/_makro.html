@@ -1,0 +1,18 @@
+{% macro ikon(nama, kelas="") -%}
+<svg class="ikon {{ kelas }}" aria-hidden="true"><use href="/static/ikon.svg#{{ nama }}"></use></svg>
+{%- endmacro %}
+
+{% macro sampul(s, pita=false, kelas="") -%}
+<div class="cv warna-{{ s.id % 5 }} {{ kelas }}">
+  {%- if s.sampul %}<img src="/sampul/{{ s.id }}" alt="" loading="lazy" decoding="async">{% else %}{{ ikon('book') }}{% endif -%}
+  {%- if pita %}<span class="pita" aria-label="Sedang kamu baca"></span>{% endif -%}
+</div>
+{%- endmacro %}
+
+{% macro kartu_rak(d) -%}
+<a class="rak-item" href="/judul/{{ d.id }}">
+  {{ sampul(d, d.sedang_dibaca) }}
+  <span class="rak-judul fd">{{ d.judul }}</span>
+  <span class="rak-sub {% if d.baru %}koral{% endif %}">{{ d.total }} ch{% if d.baru %}, {{ d.baru }} baru{% endif %}</span>
+</a>
+{%- endmacro %}

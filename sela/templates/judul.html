@@ -1,0 +1,108 @@
+{% extends "kerangka.html" %}
+{% from "_makro.html" import ikon, sampul %}
+{% block judul %}{{ d.s.judul }} · Sela{% endblock %}
+{% block isi %}
+<a class="kembali" href="/rak">{{ ikon('arrow-left') }}Rak bersama</a>
+<section class="hero">
+  {{ sampul(d.s, d.lanjut is not none, 'cv-besar') }}
+  <div class="hero-teks">
+    <div class="tag-baris">
+      {% if d.s.jenis %}<span class="tag tag-teal">{{ d.s.jenis | capitalize }}</span>{% endif %}
+      <span class="tag tag-lavender">{{ d.total }} chapter</span>
+    </div>
+    <h1 class="fd hero-judul">{{ d.s.judul }}</h1>
+    {% if d.s.alias %}<p class="kecil lembut">Juga dikenal: {{ d.s.alias | join(', ') }}</p>{% endif %}
+    {% if d.s.sinopsis %}<p class="sinopsis">{{ d.s.sinopsis }}</p>{% endif %}
+    <div class="aksi-baris">
+      {% if d.lanjut %}
+      <a class="tombol tombol-utama" href="/baca/{{ d.lanjut.id }}">{{ ikon('player-play') }}Lanjut {{ d.lanjut.label | lower }}</a>
+      {% if d.pertama %}<a class="tombol tombol-garis" href="/baca/{{ d.pertama.id }}">Dari {{ d.pertama.label | lower }}</a>{% endif %}
+      {% elif d.pertama %}
+      <a class="tombol tombol-utama" href="/baca/{{ d.pertama.id }}">{{ ikon('player-play') }}Mulai dari {{ d.pertama.label | lower }}</a>
+      {% endif %}
+      <button class="bulat" type="button" data-aksi="post" data-url="/api/series/{{ d.s.id }}/cek" data-pesan="Judul ini dijadwalkan dicek" aria-label="Cek update">{{ ikon('refresh') }}</button>
+      <details class="menu">
+        <summary class="bulat" aria-label="Menu lain">{{ ikon('dots') }}</summary>
+        <div class="menu-isi">
+          {% if not d.cadangan %}
+          <form class="tautkan-cadangan" data-url="/api/series/{{ d.s.id }}/cadangan">
+            <label class="kecil" for="url-cadangan">Tempel link cadangan</label>
+            <input id="url-cadangan" name="url" type="url" placeholder="https://komikindo.ch/komik/...">
+            <button class="tombol tombol-garis kecil-tombol" type="submit">Tautkan</button>
+          </form>
+          {% elif u.peran == 'admin' %}
+          <button class="menu-item" type="button" data-aksi="post" data-url="/api/series/{{ d.s.id }}/sumber-utama" data-badan='{"sumber_id": {{ d.cadangan.id }}}' data-konfirmasi="Jadikan {{ d.cadangan.situs }} sumber utama? Chapter yang belum siap akan diambil dari sana." data-pesan="Sumber utama diganti">Jadikan {{ d.cadangan.situs }} sumber utama</button>
+          {% else %}
+          <p class="kecil redup">Sumber utama hanya bisa diganti Fathin.</p>
+          {% endif %}
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="ringkas" aria-label="Ringkasan">
+  <div class="angka"><span class="fd">{{ d.hitung.siap }}</span><span class="kecil lembut">dari {{ d.total }} siap</span></div>
+  <div class="angka"><span class="fd">{{ d.hitung.proses }}</span><span class="kecil lembut">antre dan diunduh</span></div>
+  <div class="angka"><span class="fd {% if d.hitung.gagal %}merah{% endif %}">{{ d.hitung.gagal }}</span><span class="kecil lembut">gagal</span></div>
+  <div class="angka angka-sumber">
+    {% for sb in d.sumber %}
+    <div class="sumber-baris">
+      <span class="titik {{ 'titik-merah' if sb.jenis_error else ('titik-hijau' if sb.peran == 'utama' else 'titik-pasir') }}"></span>
+      <b class="kecil">{{ sb.situs }}</b>
+      <span class="kecil lembut kanan">{{ sb.peran }}{% if sb.jenis_error %}, bermasalah{% elif sb.peran == 'utama' %}, dicek {{ sb.dicek }}{% else %}, siap dipakai{% endif %}</span>
+      {% if sb.jenis_error == 'ditolak' %}<button class="tautan kecil" type="button" data-aksi="post" data-url="/api/sumber/{{ sb.id }}/coba-lagi" data-pesan="Sumber dicoba lagi">Coba lagi</button>{% endif %}
+    </div>
+    {% if sb.jenis_error %}<p class="kecil merah">{{ sb.pesan_error }}</p>{% endif %}
+    {% endfor %}
+  </div>
+</section>
+
+<section aria-labelledby="judul-chapter">
+  <div class="bagian-kepala">
+    <h2 id="judul-chapter" class="fd">Chapter</h2>
+    <nav class="segmen" aria-label="Saring chapter">
+      <a href="?urut={{ urut }}" class="{% if not f %}aktif{% endif %}">Semua</a>
+      <a href="?f=belum&urut={{ urut }}" class="{% if f == 'belum' %}aktif{% endif %}">Belum dibaca</a>
+      <a href="?f=siap&urut={{ urut }}" class="{% if f == 'siap' %}aktif{% endif %}">Siap</a>
+    </nav>
+    <a class="urut kecil lembut" href="?{% if f %}f={{ f }}&{% endif %}urut={{ 'lama' if urut == 'baru' else 'baru' }}">{{ ikon('sort-descending' if urut == 'baru' else 'sort-ascending') }}{{ 'Terbaru dulu' if urut == 'baru' else 'Terlama dulu' }}</a>
+  </div>
+  <div class="daftar">
+    <div class="baris baris-kepala kecil"><span>Chapter</span><span>Arsip, berlaku bersama</span><span>Bacaanmu</span></div>
+    {% for c in d.baris %}
+    <div class="baris{% if c.sedang %} baris-sedang{% endif %}">
+      <div class="baris-label">
+        {% if c.status == 'siap' %}<a class="fd" href="/baca/{{ c.id }}">{{ c.label }}</a>{% else %}<span class="fd">{{ c.label }}</span>{% endif %}
+        {% if c.baru %}<span class="tag tag-koral">baru</span>{% endif %}
+        {% if c.ekstra %}<span class="tag tag-mustard">ekstra</span>{% endif %}
+        {% if c.dari_cadangan %}<span class="tag tag-pasir">dari {{ d.cadangan.situs }}</span>{% endif %}
+        {% if c.terbit %}<span class="kecil lembut terbit">{{ c.terbit }}</span>{% endif %}
+      </div>
+      <div class="baris-arsip">
+        {% if c.status == 'siap' %}<span class="tag tag-teal">{{ ikon('check') }}Siap</span>
+        {% elif c.status == 'mengunduh' %}<span class="kecil teal tebal">Mengunduh {{ c.persen_unduh }}%</span><progress class="progres-tipis" max="100" value="{{ c.persen_unduh }}">{{ c.persen_unduh }}%</progress>
+        {% elif c.status in ('gagal', 'hanya_cadangan') %}
+          <span class="tag {{ 'tag-koral' if c.status == 'gagal' else 'tag-pasir' }}">{{ c.status_teks }}</span>
+          {% if c.pesan_status %}<span class="kecil merah blok">{{ c.pesan_status }}</span>{% endif %}
+          <span class="aksi-kecil">
+            {% if c.status == 'gagal' %}<button class="tautan kecil" type="button" data-aksi="post" data-url="/api/chapter/{{ c.id }}/coba-lagi" data-pesan="{{ c.label }} dicoba lagi">Coba lagi</button>{% endif %}
+            {% if c.ada_cadangan %}<button class="tautan kecil" type="button" data-aksi="post" data-url="/api/chapter/{{ c.id }}/ambil-cadangan" data-pesan="{{ c.label }} diambil dari {{ d.cadangan.situs }}">Ambil dari {{ d.cadangan.situs }}</button>{% endif %}
+          </span>
+        {% else %}<span class="tag tag-abu">{{ ikon('clock') }}{{ c.status_teks }}</span>
+          {% if c.pesan_status %}<span class="kecil lembut blok">{{ c.pesan_status }}</span>{% endif %}
+        {% endif %}
+      </div>
+      <div class="baris-baca kecil">
+        {% if c.sedang %}<span class="lavender tebal"><span class="pita-mini" aria-hidden="true"></span>Dibaca {{ c.persen }}%</span>
+        {% elif c.baca == 'selesai' %}<span class="teal">{{ ikon('circle-check') }}Selesai</span>
+        {% elif c.baca == 'dibaca' %}<span class="lavender">Dibaca</span>
+        {% else %}<span class="lembut">Belum dibaca</span>{% endif %}
+      </div>
+    </div>
+    {% else %}
+    <p class="kosong-kecil redup">Tidak ada chapter di saringan ini.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

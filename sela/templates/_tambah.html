@@ -1,0 +1,22 @@
+{% from "_makro.html" import ikon %}
+<dialog id="tambah" class="dialog" aria-labelledby="tambah-judul">
+  <form id="tambah-form" class="dialog-isi" novalidate>
+    <div class="dialog-kepala">
+      <h2 id="tambah-judul" class="fd">Tambah judul</h2>
+      <button type="button" class="bulat tutup-dialog" aria-label="Tutup">{{ ikon('x') }}</button>
+    </div>
+    <label for="tambah-url" class="label">Link halaman judul dari Komiku atau KomikIndo</label>
+    <input id="tambah-url" name="url" type="url" inputmode="url" autocomplete="off" required
+           placeholder="https://komiku.org/manga/judul-komik/">
+    <p id="tambah-galat" class="galat" role="alert" hidden></p>
+    <div id="tambah-pratinjau" class="pratinjau" hidden>
+      <p class="fd pratinjau-judul" id="pv-judul"></p>
+      <p class="redup" id="pv-info"></p>
+      <label class="centang" id="pv-cadangan-label" hidden><input type="checkbox" id="pv-cadangan" checked> <span id="pv-cadangan-teks"></span></label>
+      <p class="kecil redup">Menambahkan judul berarti semua chapter-nya akan diunduh ke Drive.</p>
+    </div>
+    <div class="dialog-aksi">
+      <button type="submit" class="tombol tombol-utama" id="tambah-kirim">Lihat pratinjau</button>
+    </div>
+  </form>
+</dialog>

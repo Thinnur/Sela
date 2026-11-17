@@ -1,0 +1,63 @@
+{% extends "kerangka.html" %}
+{% from "_makro.html" import ikon %}
+{% block judul %}Aktivitas · Sela{% endblock %}
+{% block isi %}
+<h1 class="fd judul-hal">Aktivitas</h1>
+<section class="kartu-grid" aria-label="Status">
+  <div class="kartu">
+    <h2 class="fd">Penyimpanan</h2>
+    {% if drive_status == 'perlu_sambung' %}<p class="merah">Drive perlu disambungkan ulang. Unduhan berhenti sampai tersambung.</p>
+    {% else %}<p>{{ ikon('cloud-check', 'teal') }} Drive tersambung, {{ ring.drive_mb }} MB tersimpan.</p>{% endif %}
+    <p class="kecil lembut">Ruang kerja VPS: {{ (disk.terpakai / 1e6) | round | int }} MB dari {{ (disk.anggaran / 1e6) | round | int }} MB.</p>
+  </div>
+  <div class="kartu">
+    <h2 class="fd">Antrean</h2>
+    <p>{{ ring.siap }} dari {{ ring.total }} chapter siap. {{ berjalan | length }} sedang diproses.</p>
+    {% if antrean_jeda %}
+    <button class="tombol tombol-utama kecil-tombol" type="button" data-aksi="post" data-url="/api/antrean/lanjut" data-pesan="Antrean dilanjutkan">{{ ikon('player-play') }}Lanjutkan antrean</button>
+    {% else %}
+    <button class="tombol tombol-garis kecil-tombol" type="button" data-aksi="post" data-url="/api/antrean/jeda" data-pesan="Antrean dijeda">{{ ikon('player-pause') }}Jeda antrean</button>
+    {% endif %}
+  </div>
+</section>
+
+{% if berjalan %}
+<section aria-labelledby="judul-berjalan">
+  <h2 id="judul-berjalan" class="fd">Sedang diproses</h2>
+  <ul class="daftar-polos">
+  {% for b in berjalan %}
+    <li class="kartu baris-proses"><span><b>{{ b.judul }}</b>, {{ b.label }}</span>
+      <span class="kecil lembut">{{ b.gambar_selesai }} dari {{ b.gambar_total }} gambar</span>
+      <progress max="{{ b.gambar_total or 1 }}" value="{{ b.gambar_selesai }}"></progress></li>
+  {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section aria-labelledby="judul-sumber">
+  <h2 id="judul-sumber" class="fd">Sumber</h2>
+  <ul class="daftar-polos">
+  {% for sb in sumber %}
+    <li class="kartu sumber-baris">
+      <span class="titik {{ 'titik-merah' if sb.jenis_error else 'titik-hijau' }}"></span>
+      <span><b>{{ sb.situs }}</b> <span class="kecil lembut">{{ sb.peran }} untuk {{ sb.judul }}, dicek {{ sb.dicek }}</span>
+      {% if sb.jenis_error %}<br><span class="kecil merah">{{ sb.pesan_error }}</span>{% endif %}</span>
+      {% if sb.jenis_error == 'ditolak' %}<button class="tautan kecil kanan" type="button" data-aksi="post" data-url="/api/sumber/{{ sb.id }}/coba-lagi" data-pesan="Sumber dicoba lagi">Coba lagi</button>{% endif %}
+    </li>
+  {% else %}
+    <li class="redup">Belum ada sumber.</li>
+  {% endfor %}
+  </ul>
+</section>
+
+<section aria-labelledby="judul-kejadian">
+  <h2 id="judul-kejadian" class="fd">Kejadian terakhir</h2>
+  <ol class="balon-daftar">
+  {% for a in kejadian %}
+    <li class="balon {{ 'balon-kanan' if a.user_id else 'balon-kiri' }}">{{ a.teks }}<span class="balon-waktu">{{ a.waktu }}</span></li>
+  {% else %}
+    <li class="balon balon-kiri">Belum ada aktivitas.</li>
+  {% endfor %}
+  </ol>
+</section>
+{% endblock %}

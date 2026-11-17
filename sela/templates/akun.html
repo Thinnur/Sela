@@ -1,0 +1,28 @@
+{% extends "kerangka.html" %}
+{% from "_makro.html" import ikon %}
+{% block judul %}Akun · Sela{% endblock %}
+{% block isi %}
+<h1 class="fd judul-hal">Akun</h1>
+<section class="kartu akun-kartu">
+  <span class="avatar avatar-besar">{{ (u.nama or u.email)[:1] | upper }}</span>
+  <div><p class="fd">{{ u.nama or u.email }}</p><p class="kecil lembut">{{ u.email }}</p></div>
+</section>
+<section class="kartu" aria-labelledby="judul-latar">
+  <h2 id="judul-latar" class="fd">Latar reader</h2>
+  <p class="kecil lembut">Tersimpan untuk akunmu dan ikut ke semua perangkat.</p>
+  <div class="segmen segmen-besar" role="group" aria-label="Latar reader">
+    <button type="button" data-latar="gelap" aria-pressed="{{ 'true' if u.latar_reader == 'gelap' else 'false' }}">{{ ikon('moon') }}Gelap</button>
+    <button type="button" data-latar="kertas" aria-pressed="{{ 'true' if u.latar_reader == 'kertas' else 'false' }}">{{ ikon('sun') }}Kertas</button>
+  </div>
+</section>
+{% if u.peran == 'admin' %}
+<section class="kartu" aria-labelledby="judul-drive">
+  <h2 id="judul-drive" class="fd">Google Drive</h2>
+  {% if drive_status == 'perlu_sambung' %}<p class="merah">Drive belum tersambung. Unduhan menunggu sampai Drive disambungkan.</p>
+  {% else %}<p>{{ ikon('cloud-check', 'teal') }} Drive tersambung.</p>{% endif %}
+  <a class="tombol tombol-garis kecil-tombol" href="/akun/drive">{{ ikon('cloud') }}Sambungkan Drive</a>
+  <p class="kecil lembut">Sela hanya bisa melihat folder dan file yang ia buat sendiri.</p>
+</section>
+{% endif %}
+<form method="post" action="/keluar"><button class="tombol tombol-garis" type="submit">{{ ikon('logout') }}Keluar</button></form>
+{% endblock %}
